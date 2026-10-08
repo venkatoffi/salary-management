@@ -1066,7 +1066,6 @@ Introducing them would make the system harder to understand, test, deploy, and m
 | Current salary | Separate `salaries` table |
 | Salary history | `salary_revisions` |
 | Authentication | Separate `authentications` table |
-| Audit logs | Not included in final design |
 | Search | Server-side |
 | Pagination | Server-side |
 | Page size | 10 records |

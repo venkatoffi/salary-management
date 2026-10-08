@@ -1,0 +1,513 @@
+  [1m[35mSQL (0.4ms)[0m  [1m[35mSET search_path TO public /*application='Backend'*/[0m
+  [1m[35m (446.6ms)[0m  [1m[35mCREATE DATABASE "backend_development" ENCODING = 'unicode' /*application='Backend'*/[0m
+  [1m[35mSQL (0.1ms)[0m  [1m[35mSET search_path TO public /*application='Backend'*/[0m
+  [1m[35m (72.2ms)[0m  [1m[35mCREATE DATABASE "backend_test" ENCODING = 'unicode' /*application='Backend'*/[0m
+  [1m[35m (5.4ms)[0m  [1m[35mCREATE TABLE "schema_migrations" ("version" character varying NOT NULL PRIMARY KEY) /*application='Backend'*/[0m
+  [1m[35m (2.5ms)[0m  [1m[35mCREATE TABLE "ar_internal_metadata" ("key" character varying NOT NULL PRIMARY KEY, "value" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.3ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.4ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Create (0.9ms)[0m  [1m[32mINSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ('environment', 'development', '2026-10-08 12:47:45.319037', '2026-10-08 12:47:45.319039') RETURNING "key" /*application='Backend'*/[0m
+Migrating to CreateSalaryManagementSchema (20261008190000)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[35m (3.0ms)[0m  [1m[35mCREATE TABLE "roles" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_roles_on_name" ON "roles" ("name") /*application='Backend'*/[0m
+  [1m[35m (2.3ms)[0m  [1m[35mCREATE TABLE "users" ("id" bigserial primary key, "first_name" character varying NOT NULL, "last_name" character varying NOT NULL, "email" character varying NOT NULL, "sex" character varying, "role_id" bigint NOT NULL, "job_title" character varying, "employee_code" character varying NOT NULL, "employment_status" character varying NOT NULL, "country_code" character varying(2) NOT NULL, "city" character varying, "date_of_joining" date NOT NULL, "last_working_date" date, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_642f17018b"
+FOREIGN KEY ("role_id")
+  REFERENCES "roles" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE INDEX "index_users_on_role_id" ON "users" ("role_id") /*application='Backend'*/[0m
+  [1m[35m (0.6ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_email" ON "users" ("email") /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_employee_code" ON "users" ("employee_code") /*application='Backend'*/[0m
+  [1m[35m (1.4ms)[0m  [1m[35mCREATE TABLE "departments" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "department_head_id" bigint, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_6289818807"
+FOREIGN KEY ("department_head_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.8ms)[0m  [1m[35mCREATE INDEX "index_departments_on_department_head_id" ON "departments" ("department_head_id") /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_departments_on_name" ON "departments" ("name") /*application='Backend'*/[0m
+  [1m[35m (0.1ms)[0m  [1m[35mALTER TABLE "users" ADD "department_id" bigint NOT NULL /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE INDEX "index_users_on_department_id" ON "users" ("department_id") /*application='Backend'*/[0m
+  [1m[35m (0.8ms)[0m  [1m[35mALTER TABLE "users" ADD CONSTRAINT "fk_rails_f29bf9cdf2"
+FOREIGN KEY ("department_id")
+  REFERENCES "departments" ("id")
+ /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE TABLE "salaries" ("id" bigserial primary key, "user_id" bigint NOT NULL, "currency_code" character varying(3) NOT NULL, "current_ctc" decimal(15,2) NOT NULL, "effective_from" date NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_127539cef3"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE INDEX "index_salaries_on_user_id" ON "salaries" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (2.5ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_salaries_on_user_id" ON "salaries" ("user_id") /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[31mROLLBACK /*application='Backend'*/[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT pg_advisory_unlock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.6ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.7ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Backend'*/[0m
+Migrating to CreateSalaryManagementSchema (20261008190000)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[35m (6.5ms)[0m  [1m[35mCREATE TABLE "roles" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_roles_on_name" ON "roles" ("name") /*application='Backend'*/[0m
+  [1m[35m (5.9ms)[0m  [1m[35mCREATE TABLE "users" ("id" bigserial primary key, "first_name" character varying NOT NULL, "last_name" character varying NOT NULL, "email" character varying NOT NULL, "sex" character varying, "role_id" bigint NOT NULL, "job_title" character varying, "employee_code" character varying NOT NULL, "employment_status" character varying NOT NULL, "country_code" character varying(2) NOT NULL, "city" character varying, "date_of_joining" date NOT NULL, "last_working_date" date, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_642f17018b"
+FOREIGN KEY ("role_id")
+  REFERENCES "roles" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_users_on_role_id" ON "users" ("role_id") /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_email" ON "users" ("email") /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_employee_code" ON "users" ("employee_code") /*application='Backend'*/[0m
+  [1m[35m (4.1ms)[0m  [1m[35mCREATE TABLE "departments" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "department_head_id" bigint, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_6289818807"
+FOREIGN KEY ("department_head_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.8ms)[0m  [1m[35mCREATE INDEX "index_departments_on_department_head_id" ON "departments" ("department_head_id") /*application='Backend'*/[0m
+  [1m[35m (0.8ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_departments_on_name" ON "departments" ("name") /*application='Backend'*/[0m
+  [1m[35m (0.2ms)[0m  [1m[35mALTER TABLE "users" ADD "department_id" bigint NOT NULL /*application='Backend'*/[0m
+  [1m[35m (0.9ms)[0m  [1m[35mCREATE INDEX "index_users_on_department_id" ON "users" ("department_id") /*application='Backend'*/[0m
+  [1m[35m (1.6ms)[0m  [1m[35mALTER TABLE "users" ADD CONSTRAINT "fk_rails_f29bf9cdf2"
+FOREIGN KEY ("department_id")
+  REFERENCES "departments" ("id")
+ /*application='Backend'*/[0m
+  [1m[35m (3.1ms)[0m  [1m[35mCREATE TABLE "salaries" ("id" bigserial primary key, "user_id" bigint NOT NULL, "currency_code" character varying(3) NOT NULL, "current_ctc" decimal(15,2) NOT NULL, "effective_from" date NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_127539cef3"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.9ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_salaries_on_user_id" ON "salaries" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (2.0ms)[0m  [1m[35mALTER TABLE "salaries" ADD CONSTRAINT salaries_current_ctc_nonnegative CHECK (current_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (5.8ms)[0m  [1m[35mCREATE TABLE "salary_revisions" ("id" bigserial primary key, "salary_id" bigint NOT NULL, "old_ctc" decimal(15,2) NOT NULL, "new_ctc" decimal(15,2) NOT NULL, "revision_date" date NOT NULL, "approved_by_id" bigint NOT NULL, "reason" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_f09028f252"
+FOREIGN KEY ("salary_id")
+  REFERENCES "salaries" ("id")
+, CONSTRAINT "fk_rails_2e08402aec"
+FOREIGN KEY ("approved_by_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.3ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_salary_id" ON "salary_revisions" ("salary_id") /*application='Backend'*/[0m
+  [1m[35m (1.7ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_approved_by_id" ON "salary_revisions" ("approved_by_id") /*application='Backend'*/[0m
+  [1m[35m (1.6ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_revision_date" ON "salary_revisions" ("revision_date") /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mALTER TABLE "salary_revisions" ADD CONSTRAINT salary_revisions_old_ctc_nonnegative CHECK (old_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[35mALTER TABLE "salary_revisions" ADD CONSTRAINT salary_revisions_new_ctc_nonnegative CHECK (new_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (5.1ms)[0m  [1m[35mCREATE TABLE "audit_logs" ("id" bigserial primary key, "user_id" bigint NOT NULL, "action" character varying NOT NULL, "auditable_type" character varying NOT NULL, "auditable_id" bigint NOT NULL, "changes" jsonb, "ip_address" inet, "user_agent" text, "created_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_1f26bc34ae"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.5ms)[0m  [1m[35mCREATE INDEX "index_audit_logs_on_auditable_type_and_auditable_id" ON "audit_logs" ("auditable_type", "auditable_id") /*application='Backend'*/[0m
+  [1m[35m (4.5ms)[0m  [1m[35mCREATE TABLE "authentications" ("id" bigserial primary key, "user_id" bigint NOT NULL, "authentication_token" character varying NOT NULL, "last_login_at" timestamp(6), "authentication_expires_at" timestamp(6), "status" character varying NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_08833fecbe"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.8ms)[0m  [1m[35mCREATE INDEX "index_authentications_on_user_id" ON "authentications" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (7.3ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_authentications_on_user_id" ON "authentications" ("user_id") /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK /*application='Backend'*/[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT pg_advisory_unlock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.9ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.7ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Backend'*/[0m
+Migrating to CreateSalaryManagementSchema (20261008190000)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[35m (5.9ms)[0m  [1m[35mCREATE TABLE "roles" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_roles_on_name" ON "roles" ("name") /*application='Backend'*/[0m
+  [1m[35m (5.2ms)[0m  [1m[35mCREATE TABLE "users" ("id" bigserial primary key, "first_name" character varying NOT NULL, "last_name" character varying NOT NULL, "email" character varying NOT NULL, "sex" character varying, "role_id" bigint NOT NULL, "job_title" character varying, "employee_code" character varying NOT NULL, "employment_status" character varying NOT NULL, "country_code" character varying(2) NOT NULL, "city" character varying, "date_of_joining" date NOT NULL, "last_working_date" date, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_642f17018b"
+FOREIGN KEY ("role_id")
+  REFERENCES "roles" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE INDEX "index_users_on_role_id" ON "users" ("role_id") /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_email" ON "users" ("email") /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_employee_code" ON "users" ("employee_code") /*application='Backend'*/[0m
+  [1m[35m (4.7ms)[0m  [1m[35mCREATE TABLE "departments" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "department_head_id" bigint, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_6289818807"
+FOREIGN KEY ("department_head_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_departments_on_department_head_id" ON "departments" ("department_head_id") /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_departments_on_name" ON "departments" ("name") /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[35mALTER TABLE "users" ADD "department_id" bigint NOT NULL /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE INDEX "index_users_on_department_id" ON "users" ("department_id") /*application='Backend'*/[0m
+  [1m[35m (2.5ms)[0m  [1m[35mALTER TABLE "users" ADD CONSTRAINT "fk_rails_f29bf9cdf2"
+FOREIGN KEY ("department_id")
+  REFERENCES "departments" ("id")
+ /*application='Backend'*/[0m
+  [1m[35m (2.8ms)[0m  [1m[35mCREATE TABLE "salaries" ("id" bigserial primary key, "user_id" bigint NOT NULL, "currency_code" character varying(3) NOT NULL, "current_ctc" decimal(15,2) NOT NULL, "effective_from" date NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_127539cef3"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (0.9ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_salaries_on_user_id" ON "salaries" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (0.7ms)[0m  [1m[35mALTER TABLE "salaries" ADD CONSTRAINT salaries_current_ctc_nonnegative CHECK (current_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (4.8ms)[0m  [1m[35mCREATE TABLE "salary_revisions" ("id" bigserial primary key, "salary_id" bigint NOT NULL, "old_ctc" decimal(15,2) NOT NULL, "new_ctc" decimal(15,2) NOT NULL, "revision_date" date NOT NULL, "approved_by_id" bigint NOT NULL, "reason" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_f09028f252"
+FOREIGN KEY ("salary_id")
+  REFERENCES "salaries" ("id")
+, CONSTRAINT "fk_rails_2e08402aec"
+FOREIGN KEY ("approved_by_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_salary_id" ON "salary_revisions" ("salary_id") /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_approved_by_id" ON "salary_revisions" ("approved_by_id") /*application='Backend'*/[0m
+  [1m[35m (1.6ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_revision_date" ON "salary_revisions" ("revision_date") /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mALTER TABLE "salary_revisions" ADD CONSTRAINT salary_revisions_old_ctc_nonnegative CHECK (old_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mALTER TABLE "salary_revisions" ADD CONSTRAINT salary_revisions_new_ctc_nonnegative CHECK (new_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (4.4ms)[0m  [1m[35mCREATE TABLE "audit_logs" ("id" bigserial primary key, "user_id" bigint NOT NULL, "action" character varying NOT NULL, "auditable_type" character varying NOT NULL, "auditable_id" bigint NOT NULL, "changes" jsonb, "ip_address" inet, "user_agent" text, "created_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_1f26bc34ae"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE INDEX "index_audit_logs_on_auditable_type_and_auditable_id" ON "audit_logs" ("auditable_type", "auditable_id") /*application='Backend'*/[0m
+  [1m[35m (5.4ms)[0m  [1m[35mCREATE TABLE "authentications" ("id" bigserial primary key, "user_id" bigint NOT NULL, "authentication_token" character varying NOT NULL, "last_login_at" timestamp(6), "authentication_expires_at" timestamp(6), "status" character varying NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_08833fecbe"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_authentications_on_user_id" ON "authentications" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_authentications_on_authentication_token" ON "authentications" ("authentication_token") /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_authentications_on_status" ON "authentications" ("status") /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_authentications_on_authentication_expires_at" ON "authentications" ("authentication_expires_at") /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.5ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20261008190000') RETURNING "version" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.7ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[35m (2.4ms)[0m  [1m[34mSELECT pg_advisory_unlock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[35m (14.7ms)[0m  [1m[35mCREATE TABLE "schema_migrations" ("version" character varying NOT NULL PRIMARY KEY) /*application='Backend'*/[0m
+  [1m[35m (1.8ms)[0m  [1m[35mCREATE TABLE "ar_internal_metadata" ("key" character varying NOT NULL PRIMARY KEY, "value" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT pg_try_advisory_lock(3087697479046693695) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.4ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (1.8ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Create (0.8ms)[0m  [1m[32mINSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ('environment', 'test', '2026-10-08 12:48:16.533816', '2026-10-08 12:48:16.533818') RETURNING "key" /*application='Backend'*/[0m
+Migrating to CreateSalaryManagementSchema (20261008190000)
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[35m (4.3ms)[0m  [1m[35mCREATE TABLE "roles" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Backend'*/[0m
+  [1m[35m (0.6ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_roles_on_name" ON "roles" ("name") /*application='Backend'*/[0m
+  [1m[35m (5.4ms)[0m  [1m[35mCREATE TABLE "users" ("id" bigserial primary key, "first_name" character varying NOT NULL, "last_name" character varying NOT NULL, "email" character varying NOT NULL, "sex" character varying, "role_id" bigint NOT NULL, "job_title" character varying, "employee_code" character varying NOT NULL, "employment_status" character varying NOT NULL, "country_code" character varying(2) NOT NULL, "city" character varying, "date_of_joining" date NOT NULL, "last_working_date" date, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_642f17018b"
+FOREIGN KEY ("role_id")
+  REFERENCES "roles" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE INDEX "index_users_on_role_id" ON "users" ("role_id") /*application='Backend'*/[0m
+  [1m[35m (0.9ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_email" ON "users" ("email") /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_users_on_employee_code" ON "users" ("employee_code") /*application='Backend'*/[0m
+  [1m[35m (3.7ms)[0m  [1m[35mCREATE TABLE "departments" ("id" bigserial primary key, "name" character varying NOT NULL, "description" text, "department_head_id" bigint, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_6289818807"
+FOREIGN KEY ("department_head_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE INDEX "index_departments_on_department_head_id" ON "departments" ("department_head_id") /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_departments_on_name" ON "departments" ("name") /*application='Backend'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mALTER TABLE "users" ADD "department_id" bigint NOT NULL /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_users_on_department_id" ON "users" ("department_id") /*application='Backend'*/[0m
+  [1m[35m (2.0ms)[0m  [1m[35mALTER TABLE "users" ADD CONSTRAINT "fk_rails_f29bf9cdf2"
+FOREIGN KEY ("department_id")
+  REFERENCES "departments" ("id")
+ /*application='Backend'*/[0m
+  [1m[35m (3.0ms)[0m  [1m[35mCREATE TABLE "salaries" ("id" bigserial primary key, "user_id" bigint NOT NULL, "currency_code" character varying(3) NOT NULL, "current_ctc" decimal(15,2) NOT NULL, "effective_from" date NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_127539cef3"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_salaries_on_user_id" ON "salaries" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (1.7ms)[0m  [1m[35mALTER TABLE "salaries" ADD CONSTRAINT salaries_current_ctc_nonnegative CHECK (current_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (4.0ms)[0m  [1m[35mCREATE TABLE "salary_revisions" ("id" bigserial primary key, "salary_id" bigint NOT NULL, "old_ctc" decimal(15,2) NOT NULL, "new_ctc" decimal(15,2) NOT NULL, "revision_date" date NOT NULL, "approved_by_id" bigint NOT NULL, "reason" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_f09028f252"
+FOREIGN KEY ("salary_id")
+  REFERENCES "salaries" ("id")
+, CONSTRAINT "fk_rails_2e08402aec"
+FOREIGN KEY ("approved_by_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_salary_id" ON "salary_revisions" ("salary_id") /*application='Backend'*/[0m
+  [1m[35m (1.7ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_approved_by_id" ON "salary_revisions" ("approved_by_id") /*application='Backend'*/[0m
+  [1m[35m (1.0ms)[0m  [1m[35mCREATE INDEX "index_salary_revisions_on_revision_date" ON "salary_revisions" ("revision_date") /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[35mALTER TABLE "salary_revisions" ADD CONSTRAINT salary_revisions_old_ctc_nonnegative CHECK (old_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[35mALTER TABLE "salary_revisions" ADD CONSTRAINT salary_revisions_new_ctc_nonnegative CHECK (new_ctc >= 0) /*application='Backend'*/[0m
+  [1m[35m (3.6ms)[0m  [1m[35mCREATE TABLE "audit_logs" ("id" bigserial primary key, "user_id" bigint NOT NULL, "action" character varying NOT NULL, "auditable_type" character varying NOT NULL, "auditable_id" bigint NOT NULL, "changes" jsonb, "ip_address" inet, "user_agent" text, "created_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_1f26bc34ae"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_audit_logs_on_auditable_type_and_auditable_id" ON "audit_logs" ("auditable_type", "auditable_id") /*application='Backend'*/[0m
+  [1m[35m (4.2ms)[0m  [1m[35mCREATE TABLE "authentications" ("id" bigserial primary key, "user_id" bigint NOT NULL, "authentication_token" character varying NOT NULL, "last_login_at" timestamp(6), "authentication_expires_at" timestamp(6), "status" character varying NOT NULL, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_08833fecbe"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+) /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_authentications_on_user_id" ON "authentications" ("user_id") /*application='Backend'*/[0m
+  [1m[35m (1.6ms)[0m  [1m[35mCREATE UNIQUE INDEX "index_authentications_on_authentication_token" ON "authentications" ("authentication_token") /*application='Backend'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mCREATE INDEX "index_authentications_on_status" ON "authentications" ("status") /*application='Backend'*/[0m
+  [1m[35m (1.5ms)[0m  [1m[35mCREATE INDEX "index_authentications_on_authentication_expires_at" ON "authentications" ("authentication_expires_at") /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.5ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20261008190000') RETURNING "version" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.9ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[35m (3.2ms)[0m  [1m[34mSELECT pg_advisory_unlock(3087697479046693695) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.8ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (2.0ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (3.0ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Exists? (2.1ms)[0m  [1m[34mSELECT 1 AS one FROM "roles" WHERE "roles"."name" = 'Test Role' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Create (0.9ms)[0m  [1m[32mINSERT INTO "roles" ("name", "description", "created_at", "updated_at") VALUES ('Test Role', NULL, '2026-10-08 12:48:48.111569', '2026-10-08 12:48:48.111569') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (1.0ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Test Department' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (1.2ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Test Department', NULL, NULL, '2026-10-08 12:48:48.121818', '2026-10-08 12:48:48.121818') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mUser Exists? (1.6ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'test@example.com' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'TEST-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (2.7ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Test', 'User', 'test@example.com', NULL, 1, NULL, 'TEST-001', 'active', 'IN', NULL, '2026-10-08', NULL, '2026-10-08 12:48:48.141999', '2026-10-08 12:48:48.141999', 1) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mDepartment Update (0.5ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 1, "updated_at" = '2026-10-08 12:48:48.154846' WHERE "departments"."id" = 1 /*application='Backend'*/[0m
+  [1m[36mSalary Create (3.8ms)[0m  [1m[32mINSERT INTO "salaries" ("user_id", "currency_code", "current_ctc", "effective_from", "created_at", "updated_at") VALUES (1, 'INR', 500000.0, '2026-10-08', '2026-10-08 12:48:48.165139', '2026-10-08 12:48:48.165139') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mSalaryRevision Create (3.5ms)[0m  [1m[32mINSERT INTO "salary_revisions" ("salary_id", "old_ctc", "new_ctc", "revision_date", "approved_by_id", "reason", "created_at", "updated_at") VALUES (1, 450000.0, 500000.0, '2026-10-08', 1, NULL, '2026-10-08 12:48:48.176859', '2026-10-08 12:48:48.176859') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mAuthentication Exists? (3.2ms)[0m  [1m[34mSELECT 1 AS one FROM "authentications" WHERE "authentications"."authentication_token" = 'test-token' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mAuthentication Create (1.7ms)[0m  [1m[32mINSERT INTO "authentications" ("user_id", "authentication_token", "last_login_at", "authentication_expires_at", "status", "created_at", "updated_at") VALUES (1, 'test-token', NULL, NULL, 'active', '2026-10-08 12:48:48.191974', '2026-10-08 12:48:48.191974') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (2.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (2.4ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Backend'*/[0m
+Migrating to RemoveAuditLogs (20261008190200)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[35m (9.0ms)[0m  [1m[35mDROP TABLE IF EXISTS "audit_logs" /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (1.7ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20261008190200') RETURNING "version" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (5.9ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT pg_advisory_unlock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.3ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Exists? (0.8ms)[0m  [1m[34mSELECT 1 AS one FROM "roles" WHERE "roles"."name" = 'Test Role' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Create (0.4ms)[0m  [1m[32mINSERT INTO "roles" ("name", "description", "created_at", "updated_at") VALUES ('Test Role', NULL, '2026-10-08 12:56:11.937134', '2026-10-08 12:56:11.937134') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (1.5ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Test Department' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (0.8ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Test Department', NULL, NULL, '2026-10-08 12:56:11.947026', '2026-10-08 12:56:11.947026') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mUser Exists? (2.4ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'test@example.com' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'TEST-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (6.0ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Test', 'User', 'test@example.com', NULL, 2, NULL, 'TEST-001', 'active', 'IN', NULL, '2026-10-08', NULL, '2026-10-08 12:56:11.963575', '2026-10-08 12:56:11.963575', 2) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mDepartment Update (0.4ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 2, "updated_at" = '2026-10-08 12:56:11.975220' WHERE "departments"."id" = 2 /*application='Backend'*/[0m
+  [1m[36mSalary Create (2.6ms)[0m  [1m[32mINSERT INTO "salaries" ("user_id", "currency_code", "current_ctc", "effective_from", "created_at", "updated_at") VALUES (2, 'INR', 500000.0, '2026-10-08', '2026-10-08 12:56:11.982593', '2026-10-08 12:56:11.982593') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mSalaryRevision Create (1.2ms)[0m  [1m[32mINSERT INTO "salary_revisions" ("salary_id", "old_ctc", "new_ctc", "revision_date", "approved_by_id", "reason", "created_at", "updated_at") VALUES (2, 450000.0, 500000.0, '2026-10-08', 2, NULL, '2026-10-08 12:56:11.991397', '2026-10-08 12:56:11.991397') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mAuthentication Exists? (3.5ms)[0m  [1m[34mSELECT 1 AS one FROM "authentications" WHERE "authentications"."authentication_token" = 'test-token' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mAuthentication Create (0.5ms)[0m  [1m[32mINSERT INTO "authentications" ("user_id", "authentication_token", "last_login_at", "authentication_expires_at", "status", "created_at", "updated_at") VALUES (2, 'test-token', NULL, NULL, 'active', '2026-10-08 12:56:12.002935', '2026-10-08 12:56:12.002935') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.7ms)[0m  [1m[31mROLLBACK /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.8ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (1.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[35m (0.3ms)[0m  [1m[34mSELECT pg_try_advisory_lock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (1.6ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (2.0ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Backend'*/[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT pg_advisory_unlock(5073945470573576205) /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.6ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mUser Load (1.5ms)[0m  [1m[34mSELECT "users".* FROM "users" ORDER BY "users"."id" ASC LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (1.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mRole Load (1.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Exists? (1.1ms)[0m  [1m[34mSELECT 1 AS one FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Create (1.7ms)[0m  [1m[32mINSERT INTO "roles" ("name", "description", "created_at", "updated_at") VALUES ('Chiefs', 'Senior-level executives responsible for overall business leadership and strategic decision-making, including roles such as CEO, CFO, and CTO.', '2026-10-08 13:09:34.815211', '2026-10-08 13:09:34.815211') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (1.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mRole Load (0.3ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Create (0.2ms)[0m  [1m[32mINSERT INTO "roles" ("name", "description", "created_at", "updated_at") VALUES ('HR Manager', 'Responsible for leading the Human Resources function, managing HR operations, employee relations, recruitment, and organizational policies.', '2026-10-08 13:09:34.822365', '2026-10-08 13:09:34.822365') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Create (0.2ms)[0m  [1m[32mINSERT INTO "roles" ("name", "description", "created_at", "updated_at") VALUES ('Department Heads', 'Leaders responsible for managing individual departments, overseeing their teams, and ensuring departmental goals and business objectives are achieved.', '2026-10-08 13:09:34.826726', '2026-10-08 13:09:34.826726') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Employees' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Exists? (1.3ms)[0m  [1m[34mSELECT 1 AS one FROM "roles" WHERE "roles"."name" = 'Employees' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Create (0.2ms)[0m  [1m[32mINSERT INTO "roles" ("name", "description", "created_at", "updated_at") VALUES ('Employees', 'Employees who work within the organization and perform responsibilities assigned to their respective departments and roles.', '2026-10-08 13:09:34.830912', '2026-10-08 13:09:34.830912') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (1.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (1.3ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (1.0ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Engineering', 'Responsible for designing, developing, testing, and maintaining software applications and technical products.', NULL, '2026-10-08 13:09:34.844126', '2026-10-08 13:09:34.844126') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (0.2ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Human Resources', 'Responsible for employee management, recruitment, onboarding, payroll coordination, performance management, and employee engagement.', NULL, '2026-10-08 13:09:34.849195', '2026-10-08 13:09:34.849195') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (0.2ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Finance', 'Responsible for financial planning, accounting, budgeting, payroll processing, expense management, and financial reporting.', NULL, '2026-10-08 13:09:34.852963', '2026-10-08 13:09:34.852963') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (0.2ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Sales and Marketing', 'Responsible for generating business opportunities, managing client relationships, sales activities, marketing campaigns, and brand promotion.', NULL, '2026-10-08 13:09:34.856940', '2026-10-08 13:09:34.856940') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (0.2ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Information Technology', 'Responsible for managing internal IT infrastructure, systems, networks, security, technical support, and enterprise technology services.', NULL, '2026-10-08 13:09:34.860842', '2026-10-08 13:09:34.860842') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Exists? (0.9ms)[0m  [1m[34mSELECT 1 AS one FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Create (0.2ms)[0m  [1m[32mINSERT INTO "departments" ("name", "description", "department_head_id", "created_at", "updated_at") VALUES ('Operations', 'Responsible for managing day-to-day business operations, process improvements, resource coordination, compliance, and operational efficiency.', NULL, '2026-10-08 13:09:34.864475', '2026-10-08 13:09:34.864475') RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (1.4ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mRole Load (0.6ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Load (0.1ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Employees' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.9ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.3ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.3ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.3ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Count (12.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "roles" /*application='Backend'*/[0m
+  [1m[36mDepartment Count (0.9ms)[0m  [1m[34mSELECT COUNT(*) FROM "departments" /*application='Backend'*/[0m
+  [1m[36mDepartment Load (1.5ms)[0m  [1m[34mSELECT "departments".* FROM "departments" ORDER BY "departments"."id" ASC LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Pluck (1.3ms)[0m  [1m[34mSELECT "roles"."id", "roles"."name" FROM "roles" ORDER BY "roles"."id" ASC /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (1.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mRole Load (2.3ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mRole Load (0.3ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Load (0.3ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Employees' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.9ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.3ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.3ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Role Load (0.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1[0m
+  [1m[36mCACHE Role Load (0.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1[0m
+  [1m[36mCACHE Role Load (0.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1[0m
+  [1m[36mUser Load (0.8ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'ananya.rao@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (1.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 3 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'ananya.rao@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'DH-ENG-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (3.4ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Ananya', 'Rao', 'ananya.rao@salarymanagement.test', 'Female', 5, 'Head of Engineering', 'DH-ENG-001', 'active', 'IN', 'Bengaluru', '2018-04-09', NULL, '2026-10-08 13:15:01.684550', '2026-10-08 13:15:01.684550', 3) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (1.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Update (1.7ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 3, "updated_at" = '2026-10-08 13:15:01.692370' WHERE "departments"."id" = 3 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'priya.sharma@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.9ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 4 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'priya.sharma@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'DH-HR-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.3ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Priya', 'Sharma', 'priya.sharma@salarymanagement.test', 'Female', 5, 'Head of Human Resources', 'DH-HR-001', 'active', 'IN', 'Mumbai', '2019-07-15', NULL, '2026-10-08 13:15:01.701088', '2026-10-08 13:15:01.701088', 4) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (2.9ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Update (1.1ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 4, "updated_at" = '2026-10-08 13:15:01.705705' WHERE "departments"."id" = 4 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.1ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'karthik.iyer@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.9ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'karthik.iyer@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'DH-FIN-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.3ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Karthik', 'Iyer', 'karthik.iyer@salarymanagement.test', 'Male', 5, 'Head of Finance', 'DH-FIN-001', 'active', 'IN', 'Chennai', '2017-01-23', NULL, '2026-10-08 13:15:01.713894', '2026-10-08 13:15:01.713894', 5) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Update (0.9ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 5, "updated_at" = '2026-10-08 13:15:01.715682' WHERE "departments"."id" = 5 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.1ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'meera.nair@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.0ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.8ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 6 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'meera.nair@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'DH-SM-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.8ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Meera', 'Nair', 'meera.nair@salarymanagement.test', 'Female', 5, 'Head of Sales and Marketing', 'DH-SM-001', 'active', 'IN', 'Kochi', '2019-10-01', NULL, '2026-10-08 13:15:01.723469', '2026-10-08 13:15:01.723469', 6) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.7ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Update (1.2ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 6, "updated_at" = '2026-10-08 13:15:01.726247' WHERE "departments"."id" = 6 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'naveen.kumar@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.9ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 7 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'naveen.kumar@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'DH-IT-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.3ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Naveen', 'Kumar', 'naveen.kumar@salarymanagement.test', 'Male', 5, 'Head of Information Technology', 'DH-IT-001', 'active', 'IN', 'Hyderabad', '2018-08-20', NULL, '2026-10-08 13:15:01.734112', '2026-10-08 13:15:01.734112', 7) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Update (0.8ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 7, "updated_at" = '2026-10-08 13:15:01.735892' WHERE "departments"."id" = 7 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.1ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'divya.menon@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.8ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 8 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'divya.menon@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'DH-OPS-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.5ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Divya', 'Menon', 'divya.menon@salarymanagement.test', 'Female', 5, 'Head of Operations', 'DH-OPS-001', 'active', 'IN', 'Pune', '2020-02-17', NULL, '2026-10-08 13:15:01.742777', '2026-10-08 13:15:01.742777', 8) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mDepartment Update (1.0ms)[0m  [1m[33mUPDATE "departments" SET "department_head_id" = 8, "updated_at" = '2026-10-08 13:15:01.744711' WHERE "departments"."id" = 8 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'arjun.mehta@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.9ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 3 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 8 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'arjun.mehta@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'CH-CEO-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.2ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Arjun', 'Mehta', 'arjun.mehta@salarymanagement.test', 'Male', 3, 'Chief Executive Officer', 'CH-CEO-001', 'active', 'IN', 'Mumbai', '2015-06-01', NULL, '2026-10-08 13:15:01.752728', '2026-10-08 13:15:01.752728', 8) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.1ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'kavya.reddy@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.8ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 3 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 5 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'kavya.reddy@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'CH-CFO-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.9ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Kavya', 'Reddy', 'kavya.reddy@salarymanagement.test', 'Female', 3, 'Chief Financial Officer', 'CH-CFO-001', 'active', 'IN', 'Chennai', '2016-03-14', NULL, '2026-10-08 13:15:01.759420', '2026-10-08 13:15:01.759420', 5) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.3ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'vikram.shah@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.8ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 3 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 3 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'vikram.shah@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'CH-CTO-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.3ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Vikram', 'Shah', 'vikram.shah@salarymanagement.test', 'Male', 3, 'Chief Technology Officer', 'CH-CTO-001', 'active', 'IN', 'Bengaluru', '2016-11-07', NULL, '2026-10-08 13:15:01.766849', '2026-10-08 13:15:01.766849', 3) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Load (0.1ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'aditi.kapoor@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mRole Load (0.8ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."id" = 4 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.1ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."id" = 4 LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."email" = 'aditi.kapoor@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Exists? (0.1ms)[0m  [1m[34mSELECT 1 AS one FROM "users" WHERE "users"."employee_code" = 'HRM-001' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Create (0.2ms)[0m  [1m[32mINSERT INTO "users" ("first_name", "last_name", "email", "sex", "role_id", "job_title", "employee_code", "employment_status", "country_code", "city", "date_of_joining", "last_working_date", "created_at", "updated_at", "department_id") VALUES ('Aditi', 'Kapoor', 'aditi.kapoor@salarymanagement.test', 'Female', 4, 'Human Resources Manager', 'HRM-001', 'active', 'IN', 'Mumbai', '2020-09-28', NULL, '2026-10-08 13:15:01.773708', '2026-10-08 13:15:01.773708', 4) RETURNING "id" /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.7ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Backend'*/[0m
+  [1m[36mRole Load (1.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mRole Load (0.2ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Employees' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.9ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.7ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.2ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mDepartment Load (0.4ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Role Load (0.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Department Heads' LIMIT 1[0m
+  [1m[36mCACHE Role Load (0.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'HR Manager' LIMIT 1[0m
+  [1m[36mCACHE Role Load (0.0ms)[0m  [1m[34mSELECT "roles".* FROM "roles" WHERE "roles"."name" = 'Chiefs' LIMIT 1[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1[0m
+  [1m[36mUser Load (0.8ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'ananya.rao@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Backend'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1[0m
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'priya.sharma@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'karthik.iyer@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Sales and Marketing' LIMIT 1[0m
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'meera.nair@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Information Technology' LIMIT 1[0m
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'naveen.kumar@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1[0m
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'divya.menon@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Operations' LIMIT 1[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'arjun.mehta@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Finance' LIMIT 1[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'kavya.reddy@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Engineering' LIMIT 1[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'vikram.shah@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mCACHE Department Load (0.0ms)[0m  [1m[34mSELECT "departments".* FROM "departments" WHERE "departments"."name" = 'Human Resources' LIMIT 1[0m
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."email" = 'aditi.kapoor@salarymanagement.test' LIMIT 1 /*application='Backend'*/[0m
+  [1m[36mUser Count (14.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "users" /*application='Backend'*/[0m
+  [1m[36mRole Count (1.7ms)[0m  [1m[34mSELECT COUNT(*) AS "count_all", "roles"."name" AS "roles_name" FROM "roles" INNER JOIN "users" ON "users"."role_id" = "roles"."id" GROUP BY "roles"."name" /*application='Backend'*/[0m
+  [1m[36mDepartment Count (0.8ms)[0m  [1m[34mSELECT COUNT(*) FROM "departments" WHERE "departments"."department_head_id" IS NOT NULL /*application='Backend'*/[0m
+  [1m[36mUser Pluck (0.2ms)[0m  [1m[34mSELECT "users"."employee_code", "users"."role_id", "users"."department_id" FROM "users" ORDER BY "users"."employee_code" ASC /*application='Backend'*/[0m

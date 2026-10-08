@@ -59,16 +59,6 @@ Provide useful information such as:
 - Roles such as Admin and HR Manager
 - Protect employee and salary data
 
-### Audit Logging
-
-Track important changes including:
-
-- Who performed the action
-- What was changed
-- Which record was changed
-- Previous/new values where applicable
-- Timestamp
-
 ## 4. Non-Functional Requirements
 
 - Support approximately 10,000 employees
@@ -116,7 +106,6 @@ The HR Manager can securely:
 3. View salary history.
 4. Search and filter employees.
 5. Understand salary distribution and trends.
-6. Audit important salary changes.
 
 ## 8. Engineering Principle
 

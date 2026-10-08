@@ -4,7 +4,7 @@
 
 This document defines the final relational database structure for the Salary Management System.
 
-The system is designed for an organization of approximately 10,000 employees. The primary user is an HR Manager who needs to manage employee information, salary information, salary revision history, departments, authentication, and audit history.
+The system is designed for an organization of approximately 10,000 employees. The primary user is an HR Manager who needs to manage employee information, salary information, salary revision history, departments, and authentication.
 
 The design intentionally keeps the domain simple and avoids payroll processing, payslips, tax calculation, PF/UAN management, banking/payment processing, and other domains that are outside the assessment scope.
 
@@ -24,15 +24,15 @@ The design intentionally keeps the domain simple and avoids payroll processing, 
                                 │              │
                                 │ Employee +   │
                                 │ App User     │
-                                └──┬───┬───┬───┘
-                                   │   │   │
-                     ┌─────────────┘   │   └─────────────────┐
-                     │                 │                     │
-                   1:1               1:1                   1:N
-                     │                 │                     │
-              ┌──────▼──────┐  ┌──────▼──────┐      ┌──────▼──────┐
-              │authentications│ │  salaries   │      │ audit_logs  │
-              └─────────────┘  └──────┬──────┘      └─────────────┘
+                                └──┬───┬───┘
+                                   │   │
+                     ┌─────────────┘   │
+                     │                 │
+                   1:1               1:1
+                     │                 │
+              ┌──────▼──────┐  ┌──────▼──────┐
+              │authentications│ │  salaries   │
+              └─────────────┘  └──────┬──────┘
                                        │
                                       1:N
                                        │
@@ -202,37 +202,7 @@ This avoids storing duplicate/derived data.
 
 ---
 
-### 3.6 audit_logs
-
-Stores important system activity and salary-related changes.
-
-| Column | Type | Constraint | Description |
-|---|---|---|---|
-| id | BIGINT | PK | Audit record identifier |
-| user_id | BIGINT | FK → users.id | User who performed the action |
-| action | VARCHAR(50) | NOT NULL | Action performed |
-| auditable_type | VARCHAR(100) | NOT NULL | Entity type being changed |
-| auditable_id | BIGINT | NOT NULL | ID of changed entity |
-| changes | JSONB | NULL | Before/after change information |
-| ip_address | INET | NULL | Request IP address |
-| user_agent | TEXT | NULL | Client information |
-| created_at | TIMESTAMP | NOT NULL | Time of action |
-
-### Relationship
-
-```text
-users
-  │
-  │ 1:N
-  ▼
-audit_logs
-```
-
-Audit records should be treated as immutable history. Normal application flows should not update or delete audit records.
-
----
-
-### 3.7 authentications
+### 3.6 authentications
 
 Stores authentication/session information separately from employee profile information.
 
@@ -295,13 +265,13 @@ For production security, the authentication token should preferably be stored as
 │                         users                             │
 │                                                          │
 │ Employee + Application User                              │
-└───────┬───────────────┬───────────────┬──────────────────┘
-        │               │               │
-        │ 1:1           │ 1:1           │ 1:N
-        ▼               ▼               ▼
-┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│authentications│ │   salaries   │  │ audit_logs   │
-└──────────────┘  └──────┬───────┘  └──────────────┘
+└───────┬───────────────┬───────────────┘
+        │               │
+        │ 1:1           │ 1:1
+        ▼               ▼
+┌──────────────┐  ┌──────────────┐
+│authentications│ │   salaries   │
+└──────────────┘  └──────┬───────┘
                          │ 1:N
                          ▼
                   ┌─────────────────┐
@@ -351,7 +321,7 @@ authentications.status      INDEX
 authentications.authentication_expires_at INDEX
 ```
 
-These indexes support common operations such as employee lookup, department filtering, salary history lookup, audit history, and authentication validation.
+These indexes support common operations such as employee lookup, department filtering, salary history lookup, and authentication validation.
 
 ---
 
@@ -414,8 +384,7 @@ A practical migration sequence is:
 5. Add the required foreign-key constraints.
 6. Create `salaries`.
 7. Create `salary_revisions`.
-8. Create `audit_logs`.
-9. Create `authentications`.
+8. Create `authentications`.
 
 This avoids migration-order problems caused by the circular relationship.
 
@@ -447,7 +416,7 @@ These represent separate business domains and are not required to demonstrate th
 
 # 10. Final Decision
 
-The final MVP database contains exactly seven core tables:
+The final MVP database contains exactly six core tables:
 
 ```text
 1. roles
@@ -463,7 +432,6 @@ The design favors:
 - Simple relational modeling
 - Clear ownership and relationships
 - Salary history preservation
-- Auditability
 - Authentication separation
 - Proper constraints and indexes
 - Maintainability
