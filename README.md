@@ -122,6 +122,18 @@ Main resources:
 /api/v1/salaries/:id/revisions
 ```
 
+Authentication uses Devise for password verification and `devise-jwt` for bearer
+tokens. Log in with `POST /api/v1/login` and JSON `{ "user": { "email": "...",
+"password": "..." } }`; pass the returned `Authorization: Bearer <token>` header
+to `/api/v1/users`. User create, list, view, update, and delete endpoints are
+restricted to users with the `Chiefs` or `HR Manager` role. Passwords are stored
+as Devise `encrypted_password` hashes and are never included in API responses.
+
+Development seeds assign the shared password `SalaryDemo2026!` to users whose
+password is not already set. This is a demo credential: change it immediately
+and do not use it outside local development. Production seeding requires the
+`INITIAL_USER_PASSWORD` environment variable.
+
 ## Performance
 
 The application uses:

@@ -1,4 +1,8 @@
 class User < ApplicationRecord
+  devise :database_authenticatable, :validatable, :jwt_authenticatable,
+         jwt_revocation_strategy: self
+  include Devise::JWT::RevocationStrategies::JTIMatcher
+
   belongs_to :role
   belongs_to :department
 
