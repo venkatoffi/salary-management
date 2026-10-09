@@ -127,13 +127,6 @@ Devise.setup do |config|
 
   config.navigational_formats = []
 
-  config.jwt do |jwt|
-    jwt.secret = Rails.application.secret_key_base
-    jwt.expiration_time = 1.day.to_i
-    jwt.dispatch_requests = [[ "POST", %r{^/api/v1/login$} ]]
-    jwt.revocation_requests = [[ "DELETE", %r{^/api/v1/logout$} ]]
-  end
-
   # Set up a pepper to generate the hashed password.
   # config.pepper = '6dc50cafca74659572c32dc8df36147a14abb2b8734180b0bd7a68cfcad34b93a9b88a3c0fd06a6ddcd0cc54a408ee83cb9b0cec9d2c601215d80d7a642c2c14'
 

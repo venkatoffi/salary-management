@@ -34,13 +34,13 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
                    get_json("/api/v1/departments", headers).fetch("departments").map { |record| record.fetch("id") }.sort
       assert_equal [ @employee_salary, @other_salary ].map(&:id).sort,
                    get_json("/api/v1/salaries", headers).fetch("salaries").map { |record| record.fetch("id") }.sort
-      revisions = [ @employee_salary, @other_salary ].flat_map do |salary|
-        get_json("/api/v1/salaries/#{salary.id}/revisions", headers)
+      revisions = [ @employee, @other_employee ].flat_map do |employee|
+        get_json("/api/v1/users/#{employee.id}/salary_revisions", headers)
           .fetch("salary_revisions").map { |record| record.fetch("id") }
       end
       assert_equal [ @employee_revision, @other_revision ].map(&:id).sort, revisions.sort
 
-      get "/api/v1/me", headers: headers, as: :json
+      get "/current_user", headers: headers, as: :json
       assert_response :success
       permissions = response.parsed_body.dig("user", "capabilities")
       assert_equal "all", response.parsed_body.dig("user", "permission_scope")
@@ -73,7 +73,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal [ @employee_salary.id ],
                  get_json("/api/v1/salaries", headers).fetch("salaries").map { |record| record.fetch("id") }
     assert_equal [ @employee_revision.id ],
-                 get_json("/api/v1/salaries/#{@employee_salary.id}/revisions", headers)
+                 get_json("/api/v1/users/#{@employee.id}/salary_revisions", headers)
                    .fetch("salary_revisions").map { |record| record.fetch("id") }
 
     get "/api/v1/users/#{@other_employee.id}", headers: headers, as: :json
@@ -82,9 +82,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
     get "/api/v1/salaries/#{@other_salary.id}", headers: headers, as: :json
     assert_response :forbidden
-    get "/api/v1/salaries/#{@other_salary.id}/revisions/#{@other_revision.id}", headers: headers, as: :json
-    assert_response :forbidden
-    get "/api/v1/salaries/#{@other_salary.id}/revisions", headers: headers, as: :json
+    get "/api/v1/users/#{@other_employee.id}/salary_revisions", headers: headers, as: :json
     assert_response :forbidden
 
     post "/api/v1/users", params: { user: {} }, headers: headers, as: :json
@@ -101,7 +99,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal [ @employee_salary.id ],
                  get_json("/api/v1/salaries", headers).fetch("salaries").map { |record| record.fetch("id") }
     assert_equal [ @employee_revision.id ],
-                 get_json("/api/v1/salaries/#{@employee_salary.id}/revisions", headers)
+                 get_json("/api/v1/users/#{@employee.id}/salary_revisions", headers)
                    .fetch("salary_revisions").map { |record| record.fetch("id") }
 
     get "/api/v1/users/#{@other_employee.id}", headers: headers, as: :json
@@ -110,9 +108,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
     get "/api/v1/salaries/#{@other_salary.id}", headers: headers, as: :json
     assert_response :forbidden
-    get "/api/v1/salaries/#{@other_salary.id}/revisions/#{@other_revision.id}", headers: headers, as: :json
-    assert_response :forbidden
-    get "/api/v1/salaries/#{@other_salary.id}/revisions", headers: headers, as: :json
+    get "/api/v1/users/#{@other_employee.id}/salary_revisions", headers: headers, as: :json
     assert_response :forbidden
 
     patch "/api/v1/users/#{@employee.id}",
@@ -123,14 +119,14 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
   end
 
   test "login and current-user responses include role and permission capabilities" do
-    post "/api/v1/login",
+    post "/login",
          params: { user: { email: @department_head.email, password: "test-password" } },
          as: :json
     assert_response :success
-    headers = { "Authorization" => response.headers.fetch("Authorization") }
+    headers = { "Authorization" => response.parsed_body.fetch("auth_token") }
 
     login_user = response.parsed_body.fetch("user")
-    get "/api/v1/me", headers: headers, as: :json
+    get "/current_user", headers: headers, as: :json
     assert_response :success
 
     current_user = response.parsed_body.fetch("user")
@@ -138,7 +134,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal @department_head.id, current_user.fetch("id")
     assert_equal "Head Test", current_user.fetch("name")
     assert_equal @department_head.email, current_user.fetch("email")
-    assert_equal "Department Heads", current_user.fetch("role")
+    assert_equal "Department Heads", current_user.fetch("role_name")
     assert_equal @department_head.role_id, current_user.fetch("role_id")
     assert_equal @engineering.id, current_user.fetch("department_id")
     assert_equal "department", current_user.fetch("permission_scope")
@@ -154,7 +150,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
       "/api/v1/users",
       "/api/v1/departments",
       "/api/v1/salaries",
-      "/api/v1/salaries/#{@employee_salary.id}/revisions"
+      "/api/v1/users/#{@employee.id}/salary_revisions"
     ].each do |path|
       get path, as: :json
       assert_response :unauthorized
@@ -190,7 +186,7 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
 
   def create_revision(salary, approver, old_ctc, new_ctc)
     SalaryRevision.create!(
-      salary: salary,
+      user: salary.user,
       old_ctc: old_ctc,
       new_ctc: new_ctc,
       revision_date: Date.new(2025, 1, 1),
@@ -199,11 +195,11 @@ class Api::V1::RoleAuthorizationTest < ActionDispatch::IntegrationTest
   end
 
   def authenticated_headers(user)
-    post "/api/v1/login",
+    post "/login",
          params: { user: { email: user.email, password: "test-password" } },
          as: :json
     assert_response :success
-    { "Authorization" => response.headers.fetch("Authorization") }
+    { "Authorization" => response.parsed_body.fetch("auth_token") }
   end
 
   def get_json(path, headers)

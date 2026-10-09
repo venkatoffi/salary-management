@@ -26,8 +26,7 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
          as: :json
 
     assert_response :success
-    token = response.headers["Authorization"]
-    assert_match(/\ABearer /, token)
+    token = response.parsed_body.fetch("auth_token")
 
     get "/api/v1/users", headers: { "Authorization" => token }, as: :json
     assert_response :success
@@ -70,7 +69,7 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :no_content
     assert_not User.exists?(created_user.id)
 
-    delete "/api/v1/logout", headers: { "Authorization" => token }, as: :json
+    post "/api/v1/logout", headers: { "Authorization" => token }, as: :json
     assert_response :no_content
     get "/api/v1/users", headers: { "Authorization" => token }, as: :json
     assert_response :unauthorized
@@ -97,7 +96,7 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
     post "/api/v1/login",
          params: { user: { email: employee.email, password: "test-password" } },
          as: :json
-    token = response.headers["Authorization"]
+    token = response.parsed_body.fetch("auth_token")
 
     get "/api/v1/users", headers: { "Authorization" => token }, as: :json
 

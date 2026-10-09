@@ -2,7 +2,7 @@ class Api::V1::AccessPolicy
   PRIVILEGED_ROLES = [ "Chiefs", "HR Manager" ].freeze
   DEPARTMENT_HEAD_ROLE = "Department Heads"
   EMPLOYEE_ROLE = "Employees"
-  RESOURCES = %i[employees departments salaries salary_revisions].freeze
+  RESOURCES = %i[employees departments salaries salary_revisions payslips].freeze
 
   def initialize(user)
     @user = user
@@ -54,7 +54,8 @@ class Api::V1::AccessPolicy
       employees: { read: full_access || department_head || employee, manage: full_access },
       departments: { read: full_access || department_head, manage: full_access },
       salaries: { read: full_access || department_head || employee, manage: full_access },
-      salary_revisions: { read: full_access || department_head || employee, manage: full_access }
+      salary_revisions: { read: full_access || department_head || employee, manage: full_access },
+      payslips: { read: full_access || department_head || employee, manage: full_access }
     }
   end
 
@@ -84,7 +85,8 @@ class Api::V1::AccessPolicy
     when :departments then relation.where(id: user.department_id)
     when :salaries then relation.joins(:user).where(users: { department_id: user.department_id })
     when :salary_revisions
-      relation.joins(salary: :user).where(users: { department_id: user.department_id })
+      relation.joins(:user).where(users: { department_id: user.department_id })
+    when :payslips then relation.joins(:user).where(users: { department_id: user.department_id })
     else relation.none
     end
   end
@@ -93,7 +95,8 @@ class Api::V1::AccessPolicy
     case resource
     when :employees then relation.where(id: user.id)
     when :salaries then relation.joins(:user).where(users: { id: user.id })
-    when :salary_revisions then relation.joins(salary: :user).where(users: { id: user.id })
+    when :salary_revisions then relation.where(user_id: user.id)
+    when :payslips then relation.where(user_id: user.id)
     else relation.none
     end
   end
@@ -104,6 +107,7 @@ class Api::V1::AccessPolicy
     when Department then :departments
     when Salary then :salaries
     when SalaryRevision then :salary_revisions
+    when Payslip then :payslips
     end
   end
 end

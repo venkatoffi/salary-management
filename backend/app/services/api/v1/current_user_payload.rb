@@ -6,7 +6,7 @@ class Api::V1::CurrentUserPayload
       id: user.id,
       name: [ user.first_name, user.last_name ].compact.join(" "),
       email: user.email,
-      role: user.role.name,
+      role_name: user.role.name,
       role_id: user.role_id,
       department_id: user.department_id,
       permission_scope: permissions.fetch(:permission_scope),

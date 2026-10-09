@@ -1,7 +1,8 @@
 class Api::V1::BaseController < ApplicationController
+  include Api::V1::Authenticatable
+
   class Forbidden < StandardError; end
 
-  before_action :authenticate_user!
   rescue_from Forbidden, with: :render_forbidden
 
   private

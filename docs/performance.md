@@ -148,7 +148,7 @@ departments.name
 
 salaries.user_id
 
-salary_revisions.salary_id
+salary_revisions.user_id
 salary_revisions.approved_by
 salary_revisions.revision_date
 
@@ -166,7 +166,7 @@ For example:
 users.email              UNIQUE
 users.employee_code      UNIQUE
 salaries.user_id         UNIQUE
-authentications.user_id  UNIQUE
+authentications.user_id  INDEX
 authentications.authentication_token UNIQUE
 ```
 
@@ -376,13 +376,13 @@ Salary history should be queried by the salary record.
 Example:
 
 ```text
-GET /api/v1/salaries/:salary_id/revisions
+GET /api/v1/users/:user_id/salary_revisions
 ```
 
 The database can use:
 
 ```text
-salary_revisions.salary_id
+salary_revisions.user_id
 ```
 
 as an index.
@@ -600,8 +600,7 @@ Important constraints include:
 ```text
 users.email UNIQUE
 users.employee_code UNIQUE
-salaries.user_id UNIQUE
-authentications.user_id UNIQUE
+ salaries.user_id         UNIQUE
 authentications.authentication_token UNIQUE
 ```
 
@@ -668,7 +667,7 @@ GET /api/v1/users?min_salary=500000&max_salary=2000000
 ### Salary history
 
 ```text
-GET /api/v1/salaries/:id/revisions
+GET /api/v1/users/:user_id/salary_revisions
 ```
 
 The goal is to identify slow queries and unnecessary data transfer rather than optimize arbitrary theoretical workloads.

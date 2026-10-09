@@ -1,3 +1,6 @@
+require "securerandom"
+
+ENV["JWT_SECRET_KEY"] ||= SecureRandom.hex(64)
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"

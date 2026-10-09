@@ -214,9 +214,16 @@ The API is versioned:
 ## Authentication
 
 ```text
-POST /api/v1/login
-POST /api/v1/logout
+POST   /login
+DELETE /logout
+GET    /current_user
 ```
+
+The authentication routes also have `/api/v1` compatibility aliases. Login
+returns an `auth_token`; protected requests send that raw JWT as the complete
+`Authorization` header value (for example, `headers: { Authorization: authToken }`
+in the React API client). `GET /` and `POST /login` are public. User registration
+is not exposed; all other API endpoints require a valid token.
 
 ## Users / Employees
 
@@ -255,16 +262,20 @@ PATCH  /api/v1/departments/:id
 ## Salaries
 
 ```text
+POST  /api/v1/salaries
 GET   /api/v1/salaries
 GET   /api/v1/salaries/:id
 PATCH /api/v1/salaries/:id
 ```
 
+The salary collection contains the single current salary per user. Updating a
+salary and its revision is atomic: both are committed or neither is.
+
 ## Salary Revisions
 
 ```text
-GET  /api/v1/salaries/:salary_id/revisions
-POST /api/v1/salaries/:salary_id/revisions
+GET  /api/v1/users/:user_id/salary_revisions
+POST /api/v1/users/:user_id/salary_revisions
 ```
 
 ---
@@ -323,6 +334,7 @@ Typical access:
 - My Profile
 - My Salary
 - Salary History
+- Payslips
 
 Authorization is enforced by the Rails backend. React hides unavailable navigation options for usability, but frontend visibility is not considered a security boundary.
 
@@ -341,6 +353,7 @@ departments
 salaries
 salary_revisions
 authentications
+payslips
 ```
 
 ## Relationships
@@ -351,10 +364,10 @@ roles
   │ 1:N
   ▼
 users
-  ├── 1:1 ──► authentications
+  ├── 1:N ──► authentications
   ├── 1:1 ──► salaries
-  │              │
-  │              └── 1:N ──► salary_revisions
+  ├── 1:N ──► salary_revisions
+  ├── 1:N ──► payslips
   │
   └── N:1 ──► departments
                    │
@@ -568,7 +581,7 @@ users.department_id
 users.role_id
 departments.name
 salaries.user_id
-salary_revisions.salary_id
+salary_revisions.user_id
 authentications.user_id
 authentications.authentication_token
 ```
