@@ -78,6 +78,12 @@ class Api::V1::SalariesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ @salary.id ],
                  get_json("/api/v1/salaries", department_head_headers).fetch("salaries").map { |row| row.fetch("id") }
 
+    filtered_salaries = get_json(
+      "/api/v1/salaries?user_id=#{@employee.id}",
+      authenticated_headers(@chief)
+    ).fetch("salaries")
+    assert_equal [ @salary.id ], filtered_salaries.map { |row| row.fetch("id") }
+
     get "/api/v1/salaries/#{@salary.id}", headers: authenticated_headers(@employee), as: :json
     assert_response :success
     get "/api/v1/salaries/#{Salary.create!(

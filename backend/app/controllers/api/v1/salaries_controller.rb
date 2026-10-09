@@ -2,7 +2,9 @@ class Api::V1::SalariesController < Api::V1::BaseController
   before_action :authorize_management!, only: %i[create update]
 
   def index
-    salaries, meta = paginate(scoped(Salary.includes(:user), :salaries).order(:id))
+    relation = scoped(Salary.includes(:user), :salaries)
+    relation = relation.where(user_id: params[:user_id]) if params[:user_id].present?
+    salaries, meta = paginate(relation.order(:id))
 
     render json: { salaries: salaries.map { |salary| salary_json(salary) }, meta: meta }
   end
