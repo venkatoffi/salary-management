@@ -3,7 +3,9 @@ class Api::V1::UsersController < Api::V1::BaseController
   before_action :set_user, only: %i[show update destroy]
 
   def index
-    users, meta = paginate(scoped(User.includes(:role, :department), :employees).order(:id))
+    users = scoped(User.includes(:role, :department), :employees)
+    users = filter_users(users)
+    users, meta = paginate(users.order(:id))
 
     render json: {
       users: users.map { |user| user_json(user) },
@@ -52,6 +54,28 @@ class Api::V1::UsersController < Api::V1::BaseController
 
   def set_user
     @user = User.find(params[:id])
+  end
+
+  def filter_users(relation)
+    relation = relation.where(department_id: params[:department_id]) if params[:department_id].present?
+    relation = relation.where(country_code: params[:country_code]) if params[:country_code].present?
+    relation = relation.where(city: params[:city]) if params[:city].present?
+    relation = relation.where(employment_status: params[:employment_status]) if params[:employment_status].present?
+
+    if params[:search].present?
+      term = "%#{User.sanitize_sql_like(params[:search].strip)}%"
+      relation = relation.where(
+        "users.first_name ILIKE :term OR users.last_name ILIKE :term OR users.email ILIKE :term OR users.employee_code ILIKE :term",
+        term: term
+      )
+    end
+
+    if params[:min_salary].present? || params[:max_salary].present?
+      relation = relation.joins(:salary)
+      relation = relation.where("salaries.current_ctc >= ?", params[:min_salary]) if params[:min_salary].present?
+      relation = relation.where("salaries.current_ctc <= ?", params[:max_salary]) if params[:max_salary].present?
+    end
+    relation.distinct
   end
 
   def user_params

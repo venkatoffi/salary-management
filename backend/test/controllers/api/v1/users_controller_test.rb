@@ -110,4 +110,44 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :forbidden
   end
+
+  test "user listing applies server-side search and pagination" do
+    create_employee("Jordan", "jordan@example.test", "EMP-010")
+    create_employee("Jordan Lee", "jordan.lee@example.test", "EMP-011")
+    create_employee("Taylor", "taylor@example.test", "EMP-012")
+
+    get "/api/v1/users?search=Jordan&page=1&per_page=1",
+        headers: { "Authorization" => authenticated_token(@chief) },
+        as: :json
+
+    assert_response :success
+    assert_equal 2, response.parsed_body.dig("meta", "total")
+    assert_equal 1, response.parsed_body.dig("meta", "page")
+    assert_equal 1, response.parsed_body.fetch("users").length
+    assert_match(/Jordan/, response.parsed_body.dig("users", 0, "first_name"))
+  end
+
+  private
+
+  def create_employee(first_name, email, employee_code)
+    User.create!(
+      first_name: first_name,
+      last_name: "Employee",
+      email: email,
+      employee_code: employee_code,
+      employment_status: "active",
+      country_code: "IN",
+      date_of_joining: Date.new(2024, 1, 1),
+      role: @employee_role,
+      department: @department,
+      password: "test-password",
+      password_confirmation: "test-password"
+    )
+  end
+
+  def authenticated_token(user)
+    post "/login", params: { email: user.email, password: "test-password" }, as: :json
+    assert_response :success
+    response.parsed_body.fetch("auth_token")
+  end
 end
