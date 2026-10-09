@@ -9,7 +9,7 @@ Built as an engineering assessment with a focus on **clarity, maintainability, p
 - **Frontend:** React.js
 - **Backend:** Ruby on Rails REST API
 - **Database:** PostgreSQL
-- **Testing:** RSpec + frontend tests
+- **Testing:** Rails test + frontend tests
 - **Deployment:** Docker
 
 ## Main Features
@@ -24,6 +24,7 @@ Built as an engineering assessment with a focus on **clarity, maintainability, p
 - View department heads and employee counts
 - View current salaries
 - View salary revision history
+- View payslips
 
 ### Department Head
 
@@ -36,6 +37,7 @@ Built as an engineering assessment with a focus on **clarity, maintainability, p
 - View their profile
 - View current salary
 - View salary history
+- View payslips
 
 ## Core Database
 
@@ -46,8 +48,8 @@ roles
 users
   ├── authentications
   ├── salaries
-  │      └── salary_revisions
-  │
+  ├── salary_revisions
+  ├── payslips
   └── departments
 ```
 
@@ -121,6 +123,9 @@ GET    /api/v1/salaries/:id
 PATCH  /api/v1/salaries/:id
 GET    /api/v1/users/:user_id/salary_revisions
 POST   /api/v1/users/:user_id/salary_revisions
+GET    /api/v1/payslips
+GET    /api/v1/payslips/:id
+GET    /api/v1/users
 ```
 
 Salary endpoints support `POST`, `GET` collection, `GET` by ID, and `PATCH` by
@@ -129,7 +134,11 @@ ID. Salary revisions support `POST` and `GET` at
 revision are committed in one database transaction. Salary revisions belong
 directly to users; salaries remain one current record per user. Payslips are
 stored per user/month/year with unique period and non-negative amount
-constraints; no payslip API endpoint is exposed yet.
+constraints and are available through read-only list and detail endpoints.
+Employee listing supports server-side `search`, `department_id`,
+`country_code`, `city`, `employment_status`, `min_salary`, and `max_salary`
+filters, plus bounded `page` and `per_page` pagination. Payslip listing accepts
+`user_id`, `month`, `year`, `page`, and `per_page`.
 Successful salary/revision creates return `201`, reads and salary updates
 return `200`, and invalid data returns `422` with an `errors` array.
 
@@ -161,8 +170,8 @@ All other API endpoints require a valid raw-token `Authorization` header.
 
 In the React client, treat the token as opaque: do not decode it or make
 authorization decisions from its contents. Store it using the application's
-appropriate secure storage, set `Authorization` directly to the token value on
-every protected API request, and use the current-user endpoint for UI state.
+session storage, set `Authorization` directly to the token value on every
+protected API request, and use the current-user endpoint for UI state.
 Backend authorization remains authoritative. Chiefs and HR Managers can
 access all records and manage them. Department Heads can read records in their
 department. Employees can read only their own profile, salary, salary
@@ -196,13 +205,13 @@ The expected scale of 10,000 employees does not require microservices or a distr
 Backend tests:
 
 ```bash
-bundle exec rspec
+cd backend && bundle exec rails test
 ```
 
 Frontend tests:
 
 ```bash
-npm test
+cd frontend && npm test
 ```
 
 The tests focus on important business behavior such as authentication, authorization, employee management, filtering, pagination, salary changes, and salary history.
@@ -217,6 +226,7 @@ More detailed decisions are documented in:
 - [`design-decisions.md`](docs/design-decisions.md) — Important technical decisions
 - [`performance.md`](docs/performance.md) — Performance strategy
 - [`ai-usage.md`](docs/ai-usage.md) — AI-assisted development approach
+- [`frontend/README.md`](frontend/README.md) — Frontend setup and configuration
 
 ## Design Principle
 
