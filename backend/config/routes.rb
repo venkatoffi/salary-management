@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resources :users, only: %i[index show create update destroy]
       resources :departments, only: %i[index show]
       resources :salaries, only: %i[index show create update]
+      resources :payslips, only: %i[index show]
       resources :users, only: [] do
         resources :salary_revisions, only: %i[index create]
       end
