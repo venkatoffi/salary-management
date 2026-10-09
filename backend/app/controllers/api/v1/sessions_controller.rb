@@ -5,13 +5,7 @@ class Api::V1::SessionsController < Devise::SessionsController
     self.resource = warden.authenticate!(auth_options)
     sign_in(resource_name, resource)
 
-    render json: {
-      user: {
-        id: resource.id,
-        email: resource.email,
-        role: resource.role.name
-      }
-    }, status: :ok
+    render json: { user: Api::V1::CurrentUserPayload.call(resource) }, status: :ok
   end
 
   protected

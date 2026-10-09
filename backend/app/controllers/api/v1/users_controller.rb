@@ -1,20 +1,18 @@
-class Api::V1::UsersController < ApplicationController
-  before_action :authenticate_user!
-  before_action :authorize_hr!
+class Api::V1::UsersController < Api::V1::BaseController
+  before_action :authorize_management!, only: %i[create update destroy]
   before_action :set_user, only: %i[show update destroy]
 
   def index
-    page = positive_param(params[:page], default: 1)
-    per_page = positive_param(params[:per_page], default: 25).clamp(1, 100)
-    users = User.includes(:role, :department).order(:id)
+    users, meta = paginate(scoped(User.includes(:role, :department), :employees).order(:id))
 
     render json: {
-      users: users.offset((page - 1) * per_page).limit(per_page).map { |user| user_json(user) },
-      meta: { page: page, per_page: per_page, total: users.count }
+      users: users.map { |user| user_json(user) },
+      meta: meta
     }
   end
 
   def show
+    authorize_record!(@user)
     render json: { user: user_json(@user) }
   end
 
@@ -52,12 +50,6 @@ class Api::V1::UsersController < ApplicationController
 
   private
 
-  def authorize_hr!
-    return if current_user.role.name.in?([ "Chiefs", "HR Manager" ])
-
-    render json: { error: "You are not authorized to manage users" }, status: :forbidden
-  end
-
   def set_user
     @user = User.find(params[:id])
   end
@@ -87,12 +79,5 @@ class Api::V1::UsersController < ApplicationController
       last_working_date: user.last_working_date,
       department: { id: user.department_id, name: user.department.name }
     }
-  end
-
-  def positive_param(value, default:)
-    parsed = Integer(value, 10)
-    parsed.positive? ? parsed : default
-  rescue ArgumentError, TypeError
-    default
   end
 end

@@ -8,7 +8,12 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      get "me", to: "current_user#show"
       resources :users
+      resources :departments, only: %i[index show]
+      resources :salaries, only: %i[index show] do
+        resources :revisions, only: %i[index show], controller: :salary_revisions
+      end
     end
   end
 

@@ -116,6 +116,7 @@ Main resources:
 
 ```text
 /api/v1/login
+/api/v1/me
 /api/v1/users
 /api/v1/departments
 /api/v1/salaries
@@ -125,9 +126,15 @@ Main resources:
 Authentication uses Devise for password verification and `devise-jwt` for bearer
 tokens. Log in with `POST /api/v1/login` and JSON `{ "user": { "email": "...",
 "password": "..." } }`; pass the returned `Authorization: Bearer <token>` header
-to `/api/v1/users`. User create, list, view, update, and delete endpoints are
-restricted to users with the `Chiefs` or `HR Manager` role. Passwords are stored
-as Devise `encrypted_password` hashes and are never included in API responses.
+to protected endpoints. `GET /api/v1/me` returns the same authenticated-user
+details, permission scope, and capabilities as login. Chiefs and HR Managers
+can access all records and manage employees. Department Heads can read
+employees, their own department, salaries, and salary revisions in their
+department. Employees can read only their own profile, salary, and salary
+revisions; department access is forbidden. Unauthorized requests return `403`;
+requests without a valid token return `401`. Collection endpoints are scoped
+before querying, and large collections are paginated. Passwords are stored as
+Devise `encrypted_password` hashes and are never included in API responses.
 
 Development seeds assign the shared password `SalaryDemo2026!` to users whose
 password is not already set. This is a demo credential: change it immediately

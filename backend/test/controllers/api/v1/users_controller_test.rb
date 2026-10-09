@@ -76,7 +76,7 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "user CRUD requires an authenticated HR user" do
+  test "user listing is scoped to the authenticated employee" do
     get "/api/v1/users", as: :json
 
     assert_response :unauthorized
@@ -100,6 +100,14 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
     token = response.headers["Authorization"]
 
     get "/api/v1/users", headers: { "Authorization" => token }, as: :json
+
+    assert_response :success
+    assert_equal [ employee.id ], response.parsed_body.fetch("users").map { |user| user.fetch("id") }
+
+    patch "/api/v1/users/#{employee.id}",
+          params: { user: { first_name: "Changed" } },
+          headers: { "Authorization" => token },
+          as: :json
 
     assert_response :forbidden
   end
