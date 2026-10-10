@@ -63,6 +63,22 @@ class Api::V1::SessionsControllerTest < ActionDispatch::IntegrationTest
     refute_equal token, authentication.authentication_token
   end
 
+  test "login CORS preflight allows the local frontend to post JSON" do
+    options "/login",
+            headers: {
+              "Origin" => "http://localhost:5173",
+              "Access-Control-Request-Method" => "POST",
+              "Access-Control-Request-Headers" => "content-type"
+            }
+
+    assert_response :success
+    assert_equal "http://localhost:5173", response.headers["Access-Control-Allow-Origin"]
+    assert_includes response.headers["Access-Control-Allow-Methods"], "POST"
+    assert_includes response.headers["Access-Control-Allow-Methods"], "OPTIONS"
+    assert_includes response.headers["Access-Control-Allow-Headers"].downcase, "content-type"
+    assert_equal 0, @user.authentications.count
+  end
+
   test "invalid credentials return 401 and do not create a session" do
     post "/login",
          params: { user: { email: @user.email, password: "incorrect" } },
