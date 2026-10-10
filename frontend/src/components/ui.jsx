@@ -16,12 +16,13 @@ export function PageHeading({ eyebrow, title, description, actions }) {
   )
 }
 
-export function StatCard({ label, value, caption, icon: Icon, tone = 'blue' }) {
+export function StatCard({ label, value, caption, icon: Icon, tone = 'blue', to }) {
+  const Card = to ? Link : 'article'
   return (
-    <article className="stat-card">
+    <Card className={`stat-card${to ? ' stat-card--link' : ''}`} {...(to ? { to, 'aria-label': `${label}: ${value}` } : {})}>
       <div className={`stat-icon stat-icon--${tone}`}><Icon size={20} strokeWidth={2} /></div>
       <div className="stat-copy"><span>{label}</span><strong>{value}</strong><small>{caption}</small></div>
-    </article>
+    </Card>
   )
 }
 
@@ -57,7 +58,7 @@ export function EmptyState({ title = 'Nothing here yet', description = 'Try chan
   return <div className="empty-state"><div className="empty-state-mark">—</div><strong>{title}</strong><p>{description}</p></div>
 }
 
-export function DataTable({ columns, rows, rowKey = 'id', emptyTitle, emptyDescription }) {
+export function DataTable({ columns, rows, rowKey = 'id', emptyTitle, emptyDescription, onRowClick }) {
   if (!rows?.length) return <EmptyState title={emptyTitle} description={emptyDescription} />
   return (
     <div className="table-scroll">
@@ -65,7 +66,18 @@ export function DataTable({ columns, rows, rowKey = 'id', emptyTitle, emptyDescr
         <thead><tr>{columns.map((column) => <th key={column.key}>{column.label}</th>)}</tr></thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row[rowKey]}>
+            <tr
+              key={row[rowKey]}
+              className={onRowClick ? 'table-row-clickable' : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              onKeyDown={onRowClick ? (event) => {
+                if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault()
+                  onRowClick(row)
+                }
+              } : undefined}
+            >
               {columns.map((column) => <td key={column.key}>{column.render ? column.render(row) : row[column.key]}</td>)}
             </tr>
           ))}
@@ -123,6 +135,24 @@ export function Modal({ title, open, onClose, children }) {
   )
 }
 
+export function Drawer({ title, open, onClose, children, labelledBy = 'drawer-title' }) {
+  useEffect(() => {
+    if (!open) return undefined
+    const close = (event) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [open, onClose])
+  if (!open) return null
+  return (
+    <div className="drawer-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="drawer" role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+        <div className="modal-heading"><h2 id={labelledBy}>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Close panel"><X size={18} /></button></div>
+        <div className="drawer-content">{children}</div>
+      </section>
+    </div>
+  )
+}
+
 export function Permission({ allowed, children, fallback = null }) {
   return allowed ? children : fallback
 }
@@ -131,8 +161,8 @@ export function LinkButton({ to, children, variant = 'primary', ...props }) {
   return <Link className={`button button--${variant}`} to={to} {...props}>{children}</Link>
 }
 
-export function formatMoney(value, currency = 'USD') {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(Number(value || 0))
+export function formatMoney(value) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Number(value ?? 0))
 }
 
 export function initials(name = '') {

@@ -12,7 +12,9 @@ export function navigationFor(user) {
   if (privileged || roleIs(user, 'Department Heads')) {
     items.push({ label: 'Employees', to: '/employees', icon: 'UsersRound', show: can(user, 'employees') })
   }
-  if (privileged) items.push({ label: 'Departments', to: '/departments', icon: 'Building2', show: can(user, 'departments') })
+  if (privileged || roleIs(user, 'Department Heads')) {
+    items.push({ label: 'Departments', to: '/departments', icon: 'Building2', show: can(user, 'departments') })
+  }
   if (privileged || roleIs(user, 'Department Heads')) {
     items.push({ label: 'Salaries', to: '/salaries', icon: 'WalletCards', show: can(user, 'salaries') })
   }

@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import DashboardLayout from '../layouts/DashboardLayout'
 import { useAuth } from '../context/AuthContext'
-import { can, roleIs } from '../utils/permissions'
+import { can } from '../utils/permissions'
 
 const LoginPage = lazy(() => import('../pages/LoginPage'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage'))
@@ -32,11 +32,6 @@ function RequirePermission({ resource, action = 'read' }) {
   return can(user, resource, action) ? <Outlet /> : <UnauthorizedPage />
 }
 
-function RequirePeopleAdmin() {
-  const { user } = useAuth()
-  return roleIs(user, 'Chiefs', 'HR Manager') ? <Outlet /> : <UnauthorizedPage />
-}
-
 export default function AppRoutes() {
   return <Suspense fallback={<div className="route-loading"><span className="spinner" />Loading your workspace…</div>}><Routes>
     <Route path="/login" element={<LoginPage />} />
@@ -44,7 +39,7 @@ export default function AppRoutes() {
       <Route element={<DashboardLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="employees" element={<RequirePermission resource="employees" />}><Route index element={<EmployeesPage />} /><Route path=":id" element={<EmployeeDetailsPage />} /></Route>
-        <Route path="departments" element={<RequirePeopleAdmin />}><Route index element={<DepartmentsPage />} /><Route path=":id" element={<DepartmentDetailsPage />} /></Route>
+        <Route path="departments" element={<RequirePermission resource="departments" />}><Route index element={<DepartmentsPage />} /><Route path=":id" element={<DepartmentDetailsPage />} /></Route>
         <Route path="salaries" element={<RequirePermission resource="salaries" />}><Route index element={<SalariesPage />} /><Route path="new" element={<RequirePermission resource="salaries" action="manage" />}><Route index element={<SalaryFormPage />} /></Route><Route path=":id" element={<SalaryDetailsPage />} /><Route path=":id/edit" element={<RequirePermission resource="salaries" action="manage" />}><Route index element={<SalaryFormPage />} /></Route></Route>
         <Route path="salary-revisions" element={<RequirePermission resource="salary_revisions" />}><Route index element={<SalaryRevisionsPage />} /></Route>
         <Route path="payslips" element={<RequirePermission resource="payslips" />}><Route index element={<PayslipsPage />} /><Route path=":id" element={<PayslipDetailsPage />} /></Route>
