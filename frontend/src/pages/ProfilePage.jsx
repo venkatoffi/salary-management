@@ -1,7 +1,7 @@
 import React from 'react'
 import { History, Pencil, ReceiptText } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Drawer, ErrorState, Field, formatMoney, LinkButton, LoadingState, PageHeading, Panel } from '../components/ui'
+import { Drawer, ErrorState, Field, formatMoney, initials, LinkButton, LoadingState, PageHeading, Panel } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useLoad } from '../hooks/useLoad'
@@ -43,18 +43,32 @@ export function ProfilePage() {
   if (loading) return <LoadingState label="Loading your profile" />
   if (error) return <ErrorState error={error} onRetry={retry} />
 
-  const fields = [
-    ['Work email', profile.email], ['Sex', profile.sex], ['Employee ID', profile.employee_code],
-    ['Role', profile.role_name], ['Job title', profile.job_title], ['Employment status', profile.employment_status],
-    ['Department', profile.department?.name], ['Reporting manager', profile.department_head?.name],
-    ['Country code', profile.country_code], ['City', profile.city], ['State', profile.state],
-    ['Date joined', profile.date_of_joining], ['Last working date', profile.last_working_date],
+  const sections = [
+    ['Personal Information', [
+      ['First Name', profile.first_name],
+      ['Last Name', profile.last_name],
+      ['Email', profile.email],
+      ['Sex', profile.sex],
+    ]],
+    ['Employment Information', [
+      ['Role', profile.role_name], ['Job title', profile.job_title], ['Employee ID', profile.employee_code],
+      ['Date joined', profile.date_of_joining], ['Last working date', profile.last_working_date],
+    ]],
+    ['Location', [['Country', profile.country_code], ['City', profile.city], ['State', profile.state]]],
+    ['Department & Reporting Manager', [['Department', profile.department?.name], ['Reporting manager', profile.department_head?.name]]],
   ]
   return <div className="page-stack">
     <PageHeading eyebrow="YOUR ACCOUNT" title="My profile" description="Your personal and work information." actions={<button className="button button--secondary" onClick={() => setEditing(true)}><Pencil size={15} /> Edit personal details</button>} />
-    <div className="profile-banner"><span className="avatar avatar--profile">{profile.first_name?.[0]}{profile.last_name?.[0]}</span><span><h2>{profile.name}</h2><p>{profile.job_title || profile.role_name} · {profile.department?.name}</p></span><span className="status-pill status-pill--green"><i />{profile.employment_status}</span></div>
-    <div className="detail-grid">
-      <Panel title="Employee information"><dl className="detail-list">{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl></Panel>
+    <section className="profile-banner" aria-label="Profile summary">
+      <span className="avatar avatar--profile">{initials(profile.name || `${profile.first_name} ${profile.last_name}`)}</span>
+      <span className="profile-banner-copy"><h2>{profile.name || `${profile.first_name} ${profile.last_name}`}</h2><p>{profile.role_name} · {profile.email}</p><small>{profile.job_title || 'Team member'}</small></span>
+      <span className={`status-pill status-pill--${profile.employment_status === 'active' ? 'green' : 'gray'}`}><i />{profile.employment_status === 'active' ? 'Active' : 'Inactive'}</span>
+    </section>
+    <div className="profile-information-grid">
+      {sections.map(([title, fields]) => <section className="profile-information-card" aria-label={title} key={title}>
+        <h2>{title}</h2>
+        <dl className="profile-detail-list">{fields.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl>
+      </section>)}
       <Panel title="Current salary"><div className="salary-highlight">{profile.salary ? formatMoney(profile.salary.current_ctc) : 'Not available'}<small>{profile.salary ? `Annual CTC · ${profile.salary.effective_from}` : 'No current salary record'}</small></div><div className="panel-action-row"><LinkButton to={`/salary-revisions?user=${user.id}`} variant="secondary"><History size={16} /> Salary history</LinkButton><LinkButton to="/payslips" variant="secondary"><ReceiptText size={16} /> Payslips</LinkButton></div></Panel>
     </div>
     <Drawer title="Edit personal details" open={editing} onClose={() => setEditing(false)}>

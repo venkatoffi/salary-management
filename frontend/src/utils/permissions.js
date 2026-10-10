@@ -20,6 +20,5 @@ export function navigationFor(user) {
   }
   items.push({ label: 'Salary history', to: '/salary-revisions', icon: 'History', show: can(user, 'salary_revisions') })
   items.push({ label: 'Payslips', to: '/payslips', icon: 'ReceiptText', show: can(user, 'payslips') })
-  items.push({ label: 'My profile', to: '/profile', icon: 'CircleUserRound', show: true })
   return items.filter((item) => item.show)
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '../context/AuthContext'
@@ -42,9 +42,12 @@ describe('protected routing and authorization-aware navigation', () => {
 
     renderApp('/')
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: /good/i })).toBeInTheDocument())
-    expect(screen.getByRole('link', { name: 'My profile' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Payslips' })).toBeInTheDocument()
+    await screen.findByRole('link', { name: 'Payslips' })
+    const sidebar = screen.getByRole('complementary')
+    expect(within(sidebar).getByRole('link', { name: 'View profile for Alex Employee' })).toBeInTheDocument()
+    expect(within(sidebar).queryByRole('link', { name: /My profile/i })).not.toBeInTheDocument()
+    expect(sidebar.querySelectorAll('a[href="/profile"]')).toHaveLength(1)
+    expect(document.querySelector('.topbar-profile')).toHaveAttribute('href', '/profile')
     expect(screen.queryByRole('link', { name: 'Departments' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Employees' })).not.toBeInTheDocument()
     const [url, options] = fetch.mock.calls[0]

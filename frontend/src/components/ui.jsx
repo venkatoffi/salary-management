@@ -135,7 +135,7 @@ export function Modal({ title, open, onClose, children }) {
   )
 }
 
-export function Drawer({ title, open, onClose, children, labelledBy = 'drawer-title' }) {
+export function Drawer({ title, open, onClose, children, labelledBy = 'drawer-title', side = 'right' }) {
   useEffect(() => {
     if (!open) return undefined
     const close = (event) => event.key === 'Escape' && onClose()
@@ -144,8 +144,8 @@ export function Drawer({ title, open, onClose, children, labelledBy = 'drawer-ti
   }, [open, onClose])
   if (!open) return null
   return (
-    <div className="drawer-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="drawer" role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+    <div className={`drawer-backdrop drawer-backdrop--${side}`} onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className={`drawer drawer--${side}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
         <div className="modal-heading"><h2 id={labelledBy}>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Close panel"><X size={18} /></button></div>
         <div className="drawer-content">{children}</div>
       </section>

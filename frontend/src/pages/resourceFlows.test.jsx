@@ -40,7 +40,7 @@ const manager = {
 
 const employeeProfile = {
   id: 8, first_name: 'Alex', last_name: 'Employee', name: 'Alex Employee',
-  email: 'alex@example.test', sex: 'Female', role: { id: 4, name: 'Employees' },
+  email: 'alex@example.test', sex: 'Female', role_name: 'Employees', role: { id: 4, name: 'Employees' },
   job_title: 'Analyst', employee_code: 'EMP-008', employment_status: 'active',
   country_code: 'IN', city: 'Bengaluru', state: 'Karnataka', date_of_joining: '2022-04-01',
   last_working_date: null, department: { id: 2, name: 'Finance' },
@@ -176,16 +176,35 @@ describe('employee, department, salary, payslip and profile flows', () => {
   })
 
   it('edits only permitted personal fields in the profile drawer', async () => {
-    api.currentUser.mockResolvedValueOnce({ user: manager }).mockResolvedValue({ user: employeeProfile })
+    api.currentUser.mockResolvedValue({ user: employeeProfile })
     api.updateCurrentUser.mockResolvedValue({ user: { ...employeeProfile, first_name: 'Alexandra', name: 'Alexandra Employee' } })
     sessionStorage.setItem('salary-management.auth-token', 'test.jwt')
     renderInApp(<ProfilePage />, { authenticated: true, currentUser: null })
 
     await screen.findByRole('heading', { name: 'My profile' })
+    await screen.findByText('alex@example.test')
+    expect(screen.getByRole('region', { name: 'Profile summary' })).toHaveTextContent('Alex Employee')
+    expect(screen.getByRole('region', { name: 'Profile summary' })).toHaveTextContent('Employees')
+    expect(screen.getByRole('region', { name: 'Profile summary' })).toHaveTextContent('alex@example.test')
+    expect(screen.getByText('Active')).toHaveClass('status-pill--green')
+    const personalInformation = screen.getByRole('region', { name: 'Personal Information' })
+    expect(within(personalInformation).getByText('First Name')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('Alex')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('Last Name')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('Employee')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('Email')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('alex@example.test')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('Sex')).toBeInTheDocument()
+    expect(within(personalInformation).getByText('Female')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Employment Information' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Location' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Department & Reporting Manager' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Edit personal details' }))
     expect(await screen.findByRole('dialog', { name: 'Edit personal details' })).toBeInTheDocument()
-    expect(screen.queryByLabelText(/Role/)).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(/Department/)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/First name/)).toHaveValue('Alex')
+    expect(screen.getByLabelText(/Last name/)).toHaveValue('Employee')
+    expect(screen.queryByLabelText('Role', { exact: true })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Department', { exact: true })).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText(/First name/), { target: { value: 'Alexandra' } })
     fireEvent.submit(screen.getByRole('dialog').querySelector('form'))
 

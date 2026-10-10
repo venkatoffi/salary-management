@@ -11,7 +11,7 @@ describe('role-based navigation', () => {
       },
     })
     expect(nav.map((item) => item.label)).toEqual([
-      'Overview', 'Employees', 'Departments', 'Salaries', 'Salary history', 'Payslips', 'My profile',
+      'Overview', 'Employees', 'Departments', 'Salaries', 'Salary history', 'Payslips',
     ])
   })
 
@@ -23,7 +23,7 @@ describe('role-based navigation', () => {
         salary_revisions: { read: true }, payslips: { read: true },
       },
     })
-    expect(nav.map((item) => item.label)).toEqual(['Overview', 'Salary history', 'Payslips', 'My profile'])
+    expect(nav.map((item) => item.label)).toEqual(['Overview', 'Salary history', 'Payslips'])
   })
 
   it('shows department heads only department-scoped resources', () => {
@@ -35,7 +35,7 @@ describe('role-based navigation', () => {
       },
     })
     expect(nav.map((item) => item.label)).toEqual([
-      'Overview', 'Employees', 'Salaries', 'Salary history', 'Payslips', 'My profile',
+      'Overview', 'Employees', 'Salaries', 'Salary history', 'Payslips',
     ])
   })
 })
