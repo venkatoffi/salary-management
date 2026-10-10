@@ -10,6 +10,10 @@ bin/rails db:prepare
 bin/rails server
 ```
 
+Set `CEO_USER_PASSWORD` before running `bin/rails db:seed` in development. The
+development CEO user is created idempotently by email, and the password is
+assigned through Devise without being printed.
+
 The API listens on `http://localhost:3000` by default. The Vite frontend runs
 on `http://localhost:5173`; Rails allows that origin by default for CORS.
 Set `FRONTEND_ORIGIN` to the exact deployed frontend origin when running

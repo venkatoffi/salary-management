@@ -118,3 +118,26 @@ User.where(encrypted_password: [ nil, "" ]).update_all(
   encrypted_password: shared_password_digest,
   updated_at: Time.current
 )
+
+if Rails.env.development?
+  ceo_password = ENV.fetch("CEO_USER_PASSWORD") do
+    raise "Set CEO_USER_PASSWORD before seeding the development CEO user"
+  end
+  ceo = User.find_or_initialize_by(email: "venkatoffi@gmail.com")
+  ceo.assign_attributes(
+    first_name: "Venkat",
+    last_name: "Balaji",
+    role: Role.find_by!(name: "Chiefs"),
+    department: Department.find_by!(name: "Operations"),
+    job_title: "Chief Executive Officer",
+    employee_code: "CH-CEO-VB-001",
+    employment_status: "active",
+    country_code: "IN",
+    city: "Bengaluru",
+    date_of_joining: Date.new(2026, 10, 10),
+    last_working_date: nil
+  )
+  ceo.password = ceo_password
+  ceo.password_confirmation = ceo_password
+  ceo.save!
+end
