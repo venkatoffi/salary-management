@@ -32,13 +32,15 @@ The design intentionally keeps the domain simple and avoids payroll processing, 
                      │                 │
               ┌──────▼──────┐  ┌──────▼──────┐
               │authentications│ │  salaries   │
-              └─────────────┘  └──────┬──────┘
-                                       │
-                                      1:N
-                                       │
-                              ┌────────▼─────────┐
-                              │salary_revisions  │
-                              └──────────────────┘
+              └──────▲───────┘  └───────────────┘
+                     │ 1:N
+                                      users
+                                  ┌─────┴─────┐
+                                  │           │
+                           ┌──────▼───┐  ┌────▼──────┐
+                           │salary_   │  │ payslips  │
+                           │revisions │  └───────────┘
+                           └──────────┘
 
 
         users
@@ -168,11 +170,11 @@ Stores salary change history.
 | Column | Type | Constraint | Description |
 |---|---|---|---|
 | id | BIGINT | PK | Revision identifier |
-| salary_id | BIGINT | FK → salaries.id | Salary record |
+| user_id | BIGINT | FK → users.id | User whose salary changed |
 | old_ctc | DECIMAL(15,2) | NOT NULL | Previous CTC |
 | new_ctc | DECIMAL(15,2) | NOT NULL | New CTC |
 | revision_date | DATE | NOT NULL | Date of salary revision |
-| approved_by | BIGINT | FK → users.id | User who approved the revision |
+| approved_by_id | BIGINT | FK → users.id | User who approved the revision |
 | reason | VARCHAR(255) | NULL | Reason for revision |
 | created_at | TIMESTAMP | NOT NULL | Creation time |
 | updated_at | TIMESTAMP | NOT NULL | Last update time |
@@ -180,12 +182,16 @@ Stores salary change history.
 ### Relationship
 
 ```text
-salaries
+users
    │
    │ 1:N
    ▼
 salary_revisions
 ```
+
+Salary revisions belong directly to users. Salary remains the user's single
+current salary record; updating it and creating its revision happen in one
+database transaction.
 
 ### Derived value
 
@@ -202,27 +208,33 @@ This avoids storing duplicate/derived data.
 
 ---
 
-### 3.6 authentications
+### 3.6 payslips
+
+Stores one payslip per user and month/year. Monetary columns use
+`DECIMAL(15,2)`; month is 1–12, year is positive, and all amounts are
+non-negative. A unique index on `(user_id, month, year)` prevents duplicates.
+No payslip API endpoint is exposed yet.
+
+### 3.7 authentications
 
 Stores authentication/session information separately from employee profile information.
 
 | Column | Type | Constraint | Description |
 |---|---|---|---|
 | id | BIGINT | PK | Authentication identifier |
-| user_id | BIGINT | FK → users.id, UNIQUE | User being authenticated |
+| user_id | BIGINT | FK → users.id | User being authenticated |
 | authentication_token | VARCHAR(255) | UNIQUE, NOT NULL | Authentication token |
 | last_login_at | TIMESTAMP | NULL | Last successful login |
 | authentication_expires_at | TIMESTAMP | NULL | Authentication/session expiry |
-| status | VARCHAR(30) | NOT NULL | Authentication status |
+| status | BOOLEAN | NOT NULL | Whether this session is active |
 | created_at | TIMESTAMP | NOT NULL | Creation time |
 | updated_at | TIMESTAMP | NOT NULL | Last update time |
 
-Example statuses:
+Session status:
 
 ```text
-active
-expired
-revoked
+true  = active
+false = revoked
 ```
 
 ### Relationship
@@ -230,12 +242,13 @@ revoked
 ```text
 users
   │
-  │ 1:1
+  │ 1:N
   ▼
 authentications
 ```
 
-For production security, the authentication token should preferably be stored as a secure hash rather than as a raw token.
+The authentication token is stored as a secure digest, and a user may have
+multiple independent sessions.
 
 ---
 
@@ -247,9 +260,10 @@ For production security, the authentication token should preferably be stored as
 | departments | users | 1:N | users.department_id |
 | users | departments | 1:N / reference | departments.department_head_id |
 | users | salaries | 1:1 | salaries.user_id |
-| salaries | salary_revisions | 1:N | salary_revisions.salary_id |
-| users | salary_revisions | 1:N | salary_revisions.approved_by |
-| users | authentications | 1:1 | authentications.user_id |
+| users | salary_revisions | 1:N | salary_revisions.user_id |
+| users | payslips | 1:N | payslips.user_id |
+| users | approved salary revisions | 1:N | salary_revisions.approved_by_id |
+| users | authentications | 1:N | authentications.user_id |
 
 ---
 
@@ -271,12 +285,14 @@ For production security, the authentication token should preferably be stored as
         ▼               ▼
 ┌──────────────┐  ┌──────────────┐
 │authentications│ │   salaries   │
-└──────────────┘  └──────┬───────┘
-                         │ 1:N
-                         ▼
-                  ┌─────────────────┐
-                  │salary_revisions │
-                  └─────────────────┘
+└──────────────┘  └──────────────┘
+                          users
+                     ┌─────┴─────┐
+                     │           │
+              ┌──────▼─────┐ ┌───▼───────┐
+              │salary_     │ │ payslips  │
+              │revisions   │ └───────────┘
+              └────────────┘
 
 
                          users
@@ -311,11 +327,12 @@ departments.department_head_id INDEX
 salaries.user_id            UNIQUE INDEX
 salaries.currency_code      INDEX
 
-salary_revisions.salary_id  INDEX
+salary_revisions.user_id    INDEX
 salary_revisions.approved_by INDEX
 salary_revisions.revision_date INDEX
+payslips.user_id, month, year UNIQUE INDEX
 
-authentications.user_id     UNIQUE INDEX
+authentications.user_id     INDEX
 authentications.authentication_token UNIQUE INDEX
 authentications.status      INDEX
 authentications.authentication_expires_at INDEX
@@ -349,11 +366,18 @@ The database should enforce important business rules wherever practical.
 - `old_ctc` and `new_ctc` are required.
 - `new_ctc` should be greater than or equal to zero.
 - `approved_by` must reference an existing user.
+- `user_id` must reference the user whose revision is recorded.
 - Revision history should not be silently deleted.
+
+### Payslips
+
+- Each user has at most one payslip per month/year.
+- Month is 1–12; year is positive.
+- Earnings, deductions, and net pay are non-negative.
 
 ### Authentication
 
-- One authentication record per user in this design.
+- A user may have multiple authentication sessions.
 - Authentication token must be unique.
 - Expired/revoked authentication should not be accepted.
 
@@ -396,7 +420,6 @@ The following are not part of the MVP database:
 
 ```text
 employees
-pay_slips
 payrolls
 tax_records
 pf_accounts
@@ -416,7 +439,7 @@ These represent separate business domains and are not required to demonstrate th
 
 # 10. Final Decision
 
-The final MVP database contains exactly six core tables:
+The current database contains:
 
 ```text
 1. roles
@@ -425,6 +448,7 @@ The final MVP database contains exactly six core tables:
 4. salaries
 5. salary_revisions
 6. authentications
+7. payslips
 ```
 
 The design favors:

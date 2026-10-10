@@ -1,4 +1,10 @@
 # This file is loaded after roles and departments have been seeded.
+initial_user_password = ENV.fetch("INITIAL_USER_PASSWORD") do
+  raise "Set INITIAL_USER_PASSWORD before seeding in production" if Rails.env.production?
+
+  "SalaryDemo2026!"
+end
+
 department_head_role = Role.find_by!(name: "Department Heads") # Currently ID 5.
 hr_manager_role = Role.find_by!(name: "HR Manager") # Currently ID 4.
 chief_role = Role.find_by!(name: "Chiefs") # Currently ID 3.
@@ -55,6 +61,7 @@ department_heads.each do |attributes|
     department_id: department.id
   )
   user = User.find_or_initialize_by(email: user_attributes[:email])
+  user.password = initial_user_password if user.new_record? || user.encrypted_password.blank?
   user.update!(user_attributes)
   department.update!(department_head: user)
 end
@@ -88,7 +95,9 @@ executives.each do |attributes|
     role_id: chief_role.id,
     department_id: Department.find_by!(name: attributes[:department_name]).id
   )
-  User.find_or_initialize_by(email: user_attributes[:email]).update!(user_attributes)
+  user = User.find_or_initialize_by(email: user_attributes[:email])
+  user.password = initial_user_password if user.new_record? || user.encrypted_password.blank?
+  user.update!(user_attributes)
 end
 
 hr_manager = {
@@ -100,4 +109,12 @@ hr_manager = {
   department_id: Department.find_by!(name: "Human Resources").id
 }
 
-User.find_or_initialize_by(email: hr_manager[:email]).update!(hr_manager)
+user = User.find_or_initialize_by(email: hr_manager[:email])
+user.password = initial_user_password if user.new_record? || user.encrypted_password.blank?
+user.update!(hr_manager)
+
+shared_password_digest = User.new(password: initial_user_password).encrypted_password
+User.where(encrypted_password: [ nil, "" ]).update_all(
+  encrypted_password: shared_password_digest,
+  updated_at: Time.current
+)

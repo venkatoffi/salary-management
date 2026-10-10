@@ -1,9 +1,13 @@
 class User < ApplicationRecord
+  devise :database_authenticatable, :validatable
+
   belongs_to :role
   belongs_to :department
 
   has_one :salary, dependent: :restrict_with_error
-  has_one :authentication, dependent: :restrict_with_error
+  has_many :authentications, dependent: :destroy
+  has_many :salary_revisions, dependent: :restrict_with_error
+  has_many :payslips, dependent: :restrict_with_error
   has_many :approved_salary_revisions,
            class_name: "SalaryRevision",
            foreign_key: :approved_by_id,

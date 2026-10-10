@@ -837,10 +837,10 @@ departments.name             UNIQUE
 
 salaries.user_id             UNIQUE
 
-salary_revisions.salary_id   INDEX
+salary_revisions.user_id     INDEX
 salary_revisions.approved_by INDEX
 
-authentications.user_id      UNIQUE
+authentications.user_id      INDEX
 authentications.authentication_token UNIQUE
 authentications.status       INDEX
 ```

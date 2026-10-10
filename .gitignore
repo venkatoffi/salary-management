@@ -1,2 +1,5 @@
 /backend/tmp
 /backend/log
+.DS_Store
+backend/.DS_Store
+backend/Gemfile.lock
