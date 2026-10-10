@@ -68,7 +68,7 @@ export const api = {
   login: async (email, password) => {
     const result = await request('/login', {
       method: 'POST',
-      body: { email, password },
+      body: { user: { email, password } },
       publicRequest: true,
       rootEndpoint: true,
     })
