@@ -33,6 +33,8 @@ export function AuthProvider({ children }) {
     return result.user
   }, [])
 
+  const updateUser = useCallback((nextUser) => setUser(nextUser), [])
+
   const logout = useCallback(async () => {
     try {
       if (tokenStorage.get()) await api.logout()
@@ -41,12 +43,13 @@ export function AuthProvider({ children }) {
     }
   }, [clearSession])
 
-  const value = useMemo(() => ({ user, loading, login, logout, clearSession }), [
+  const value = useMemo(() => ({ user, loading, login, logout, clearSession, updateUser }), [
     user,
     loading,
     login,
     logout,
     clearSession,
+    updateUser,
   ])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

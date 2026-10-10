@@ -129,6 +129,50 @@ class Api::V1::SalariesControllerTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
+  test "salary list supports employee search and includes HR table metadata" do
+    SalaryRevision.create!(
+      user: @employee,
+      old_ctc: 90_000,
+      new_ctc: 100_000,
+      revision_date: Date.new(2025, 4, 1),
+      approved_by: @chief,
+      reason: "Promotion"
+    )
+    response_body = get_json(
+      "/api/v1/salaries?search=employee&department_id=#{@engineering.id}&page=1&per_page=5",
+      authenticated_headers(@chief)
+    )
+
+    assert_equal 1, response_body.fetch("salaries").length
+    salary = response_body.fetch("salaries").first
+    assert_equal "Employee Test", salary.dig("user", "name")
+    assert_equal "EMP-001", salary.dig("user", "employee_code")
+    assert_equal "Engineering", salary.dig("user", "department", "name")
+    assert_equal Date.new(2020, 1, 1).to_s, salary.dig("user", "date_of_joining")
+    assert_equal Date.new(2025, 4, 1).to_s, salary.fetch("last_revision_date")
+  end
+
+  test "salary detail returns newest-first revisions with approver names" do
+    older = @employee.salary_revisions.create!(
+      old_ctc: 80_000,
+      new_ctc: 90_000,
+      revision_date: Date.new(2024, 4, 1),
+      approved_by: @chief,
+      reason: "Earlier"
+    )
+    newer = @employee.salary_revisions.create!(
+      old_ctc: 90_000,
+      new_ctc: 100_000,
+      revision_date: Date.new(2025, 4, 1),
+      approved_by: @chief,
+      reason: "Latest"
+    )
+
+    response_body = get_json("/api/v1/salaries/#{@salary.id}", authenticated_headers(@chief))
+    assert_equal [ newer.id, older.id ], response_body.fetch("salary_revisions").map { |row| row.fetch("id") }
+    assert_equal @chief.name, response_body.dig("salary_revisions", 0, "approved_by_name")
+  end
+
   private
 
   def create_user(first_name, email, employee_code, role, department)

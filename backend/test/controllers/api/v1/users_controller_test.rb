@@ -127,6 +127,57 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
     assert_match(/Jordan/, response.parsed_body.dig("users", 0, "first_name"))
   end
 
+  test "employee profile includes manager, state, role and authorized salary summary" do
+    @department.update!(department_head: @chief)
+    employee = create_employee("Morgan", "morgan@example.test", "EMP-013")
+    employee.update!(state: "Karnataka", city: "Bengaluru")
+    Salary.create!(
+      user: employee,
+      currency_code: "INR",
+      current_ctc: 1_200_000,
+      effective_from: Date.new(2025, 4, 1)
+    )
+
+    get "/api/v1/users/#{employee.id}",
+        headers: { "Authorization" => authenticated_token(@chief) },
+        as: :json
+
+    assert_response :success
+    profile = response.parsed_body.fetch("user")
+    assert_equal "Karnataka", profile.fetch("state")
+    assert_equal "Employees", profile.dig("role", "name")
+    assert_equal @chief.name, profile.dig("department_head", "name")
+    assert_equal "1200000.0", profile.dig("salary", "current_ctc")
+  end
+
+  test "current user can update personal fields but not employment structure" do
+    employee = create_employee("Morgan", "morgan@example.test", "EMP-014")
+
+    patch "/current_user",
+          params: {
+            user: {
+              first_name: "Morgan Updated",
+              city: "Bengaluru",
+              state: "Karnataka",
+              role_id: @chief.role_id,
+              department_id: @department.id,
+              employee_code: "CHANGED"
+            }
+          },
+          headers: { "Authorization" => authenticated_token(employee) },
+          as: :json
+
+    assert_response :success
+    employee.reload
+    assert_equal "Morgan Updated", employee.first_name
+    assert_equal "Bengaluru", employee.city
+    assert_equal "Karnataka", employee.state
+    assert_equal @employee_role.id, employee.role_id
+    assert_equal "EMP-014", employee.employee_code
+    assert_equal @department.id, employee.department_id
+    assert_equal "Morgan Updated Employee", response.parsed_body.dig("user", "name")
+  end
+
   private
 
   def create_employee(first_name, email, employee_code)

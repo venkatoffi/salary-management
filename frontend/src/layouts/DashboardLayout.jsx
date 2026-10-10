@@ -16,6 +16,8 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { initials } from '../components/ui'
+import { HelpCenter } from '../components/HelpCenter'
+import { NotificationsPopover } from '../components/NotificationsPopover'
 import { navigationFor } from '../utils/permissions'
 
 const icons = { LayoutDashboard, UsersRound, Building2, WalletCards, History, ReceiptText, CircleUserRound }
@@ -23,6 +25,7 @@ const icons = { LayoutDashboard, UsersRound, Building2, WalletCards, History, Re
 export default function DashboardLayout() {
   const { user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const nav = navigationFor(user)
 
   async function handleLogout() {
@@ -48,10 +51,18 @@ export default function DashboardLayout() {
           })}
         </nav>
         <div className="sidebar-bottom">
-          <div className="help-card"><span className="help-icon">?</span><strong>Need a hand?</strong><p>Visit the people ops help center.</p><button type="button">Open help center <span>↗</span></button></div>
+          <div className="help-card"><span className="help-icon">?</span><strong>Need a hand?</strong><p>Visit the people ops help center.</p><button type="button" onClick={() => setHelpOpen(true)}>Open help center <span>↗</span></button></div>
           <div className="sidebar-user">
-            <span className="avatar avatar--sidebar">{initials(user?.name)}</span>
-            <span className="sidebar-user-copy"><strong>{user?.name}</strong><small>{user?.role_name}</small></span>
+            <NavLink
+              to="/profile"
+              end
+              aria-label={`View profile for ${user?.name}`}
+              onClick={() => setMenuOpen(false)}
+              className={({ isActive }) => `sidebar-user-link ${isActive ? 'sidebar-user-link--active' : ''}`}
+            >
+              <span className="avatar avatar--sidebar">{initials(user?.name)}</span>
+              <span className="sidebar-user-copy"><strong>{user?.name}</strong><small>{user?.role_name}</small></span>
+            </NavLink>
             <button className="icon-button logout-button" onClick={handleLogout} aria-label="Log out"><LogOut size={17} /></button>
           </div>
         </div>
@@ -63,13 +74,14 @@ export default function DashboardLayout() {
           <div className="breadcrumbs"><span>Workspace</span><span className="crumb-separator">/</span><strong>Overview</strong></div>
           <div className="topbar-actions">
             <span className="topbar-date">{new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date())}</span>
-            <button className="icon-button notification-button" aria-label="Notifications"><Bell size={18} /><i /></button>
+            <NotificationsPopover />
             <NavLink to="/profile" className="topbar-profile"><span className="avatar avatar--top">{initials(user?.name)}</span><span>{user?.name?.split(' ')[0]}</span><CircleUserRound size={15} /></NavLink>
           </div>
         </header>
         <main className="content"><Outlet /></main>
         <footer className="app-footer"><span>© 2026 Salarywise</span><span>People operations, made clearer.</span></footer>
       </div>
+      <HelpCenter open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   )
 }

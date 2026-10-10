@@ -57,6 +57,20 @@ class Api::V1::PayslipsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
+  test "payslip list and detail include employee identity and pay fields" do
+    headers = authenticated_headers(@chief)
+    listed = get_json("/api/v1/payslips?user_id=#{@employee.id}&month=5&year=2025&page=1&per_page=10", headers)
+      .fetch("payslips").sole
+    assert_equal @employee.name, listed.dig("user", "name")
+    assert_equal @employee.employee_code, listed.dig("user", "employee_code")
+
+    detail = get_json("/api/v1/payslips/#{@payslip.id}", headers).fetch("payslip")
+    assert_equal "Engineering", detail.dig("user", "department", "name")
+    assert_equal 10_000, detail.fetch("total_earnings").to_i
+    assert_equal 1_000, detail.fetch("total_deduction").to_i
+    assert_equal 9_000, detail.fetch("net_pay").to_i
+  end
+
   private
 
   def create_user(first_name, role, department, email, employee_code)

@@ -32,10 +32,24 @@ class Api::V1::SessionsControllerTest < ActionDispatch::IntegrationTest
       {
         "id" => @user.id,
         "name" => "Alex Employee",
+        "first_name" => "Alex",
+        "last_name" => "Employee",
         "email" => @user.email,
+        "sex" => nil,
+        "country_code" => "IN",
+        "city" => nil,
+        "state" => nil,
+        "date_of_joining" => "2020-01-01",
+        "last_working_date" => nil,
+        "employee_code" => "EMP-001",
+        "job_title" => nil,
+        "employment_status" => "active",
         "role_id" => @role.id,
         "role_name" => "Employees",
         "department_id" => @department.id,
+        "department" => { "id" => @department.id, "name" => "Engineering", "description" => nil },
+        "department_head" => nil,
+        "salary" => nil,
         "permission_scope" => "self",
         "capabilities" => {
           "employees" => { "read" => true, "manage" => false },
@@ -61,6 +75,22 @@ class Api::V1::SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal Digest::SHA256.hexdigest(token), authentication.authentication_token
     assert_equal Time.at(payload.fetch("exp")).utc.to_i, authentication.authentication_expires_at.to_i
     refute_equal token, authentication.authentication_token
+  end
+
+  test "login CORS preflight allows the local frontend to post JSON" do
+    options "/login",
+            headers: {
+              "Origin" => "http://localhost:5173",
+              "Access-Control-Request-Method" => "POST",
+              "Access-Control-Request-Headers" => "content-type"
+            }
+
+    assert_response :success
+    assert_equal "http://localhost:5173", response.headers["Access-Control-Allow-Origin"]
+    assert_includes response.headers["Access-Control-Allow-Methods"], "POST"
+    assert_includes response.headers["Access-Control-Allow-Methods"], "OPTIONS"
+    assert_includes response.headers["Access-Control-Allow-Headers"].downcase, "content-type"
+    assert_equal 0, @user.authentications.count
   end
 
   test "invalid credentials return 401 and do not create a session" do

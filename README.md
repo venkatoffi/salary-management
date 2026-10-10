@@ -104,7 +104,18 @@ rails db:migrate
 rails db:seed
 ```
 
-The seed process creates approximately **10,000 employees** for testing search, filtering, pagination, and salary functionality.
+`db:seed` creates the standard roles, departments, and leadership users. To
+generate the deterministic 10,000-person INR demo dataset, run this separate
+development-only task from the `backend/` directory:
+
+```bash
+SEED_USER_PASSWORD="SalaryDemo2026!" rbenv exec bundle exec rails demo_data:seed
+```
+
+The task is safe to rerun and seeds 9,900 active employees and 100 inactive
+employees with valid last-working dates. It verifies the department
+distribution, INR salaries, July–September payslips, net-pay calculations, and
+salary revision history.
 
 ## API
 
@@ -117,15 +128,23 @@ The backend exposes a versioned REST API:
 Main resources:
 
 ```text
+GET    /api/v1/departments
+GET    /api/v1/departments/:id
+GET    /api/v1/roles
+GET    /api/v1/users?page=&per_page=&search=&department_id=
+GET    /api/v1/users/:id
+POST   /api/v1/users
+PATCH  /api/v1/users/:id
 POST   /api/v1/salaries
-GET    /api/v1/salaries
+GET    /api/v1/salaries?page=&per_page=&search=&department_id=
 GET    /api/v1/salaries/:id
 PATCH  /api/v1/salaries/:id
 GET    /api/v1/users/:user_id/salary_revisions
 POST   /api/v1/users/:user_id/salary_revisions
-GET    /api/v1/payslips
+GET    /api/v1/payslips?page=&per_page=&user_id=&month=&year=
 GET    /api/v1/payslips/:id
-GET    /api/v1/users
+GET    /current_user
+PATCH  /current_user
 ```
 
 Salary endpoints support `POST`, `GET` collection, `GET` by ID, and `PATCH` by
@@ -141,6 +160,11 @@ filters, plus bounded `page` and `per_page` pagination. Payslip listing accepts
 `user_id`, `month`, `year`, `page`, and `per_page`.
 Successful salary/revision creates return `201`, reads and salary updates
 return `200`, and invalid data returns `422` with an `errors` array.
+Employee and department details include department-head information and employee
+counts. Salary details include newest-first revision history and approver names;
+payslip responses include employee identity. Current-user profile updates permit
+personal contact fields only—the role, department, employee code, salary, and
+reporting structure remain server-controlled.
 
 Authentication endpoints are available directly at `/login`, `/logout`, and
 `/current_user`. The version-prefixed authentication routes remain available

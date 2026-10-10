@@ -22,4 +22,8 @@ class User < ApplicationRecord
             :country_code, :date_of_joining, presence: true
   validates :email, :employee_code, uniqueness: true
   validates :country_code, length: { is: 2 }
+
+  def name
+    [ first_name, last_name ].compact.join(" ")
+  end
 end
