@@ -3,7 +3,7 @@ class Api::V1::UsersController < Api::V1::BaseController
   before_action :set_user, only: %i[show update destroy]
 
   def index
-    users = scoped(User.includes(:role, :department), :employees)
+    users = scoped(User.includes(:role, department: :department_head), :employees)
     users = filter_users(users)
     users, meta = paginate(users.order(:id))
 
@@ -15,14 +15,14 @@ class Api::V1::UsersController < Api::V1::BaseController
 
   def show
     authorize_record!(@user)
-    render json: { user: user_json(@user) }
+    render json: { user: user_json(@user, include_salary: true) }
   end
 
   def create
     user = User.new(user_params)
 
     if user.save
-      render json: { user: user_json(user) }, status: :created
+      render json: { user: user_json(user, include_salary: true) }, status: :created
     else
       render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
     end
@@ -36,7 +36,7 @@ class Api::V1::UsersController < Api::V1::BaseController
     end
 
     if @user.update(attributes)
-      render json: { user: user_json(@user) }
+      render json: { user: user_json(@user, include_salary: true) }
     else
       render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
     end
@@ -82,15 +82,18 @@ class Api::V1::UsersController < Api::V1::BaseController
     params.require(:user).permit(
       :first_name, :last_name, :email, :sex, :role_id, :job_title, :employee_code,
       :employment_status, :country_code, :city, :date_of_joining, :last_working_date,
-      :department_id, :password, :password_confirmation
+      :state, :department_id, :password, :password_confirmation
     )
   end
 
-  def user_json(user)
+  def user_json(user, include_salary: false)
+    department = user.department
+    manager = department.department_head
     {
       id: user.id,
       first_name: user.first_name,
       last_name: user.last_name,
+      name: user.name,
       email: user.email,
       sex: user.sex,
       role: { id: user.role_id, name: user.role.name },
@@ -99,9 +102,22 @@ class Api::V1::UsersController < Api::V1::BaseController
       employment_status: user.employment_status,
       country_code: user.country_code,
       city: user.city,
+      state: user.state,
       date_of_joining: user.date_of_joining,
       last_working_date: user.last_working_date,
-      department: { id: user.department_id, name: user.department.name }
+      department: {
+        id: department.id,
+        name: department.name,
+        description: department.description,
+        department_head_id: department.department_head_id
+      },
+      department_head: manager && { id: manager.id, name: manager.name },
+      salary: include_salary && user.salary ? {
+        id: user.salary.id,
+        current_ctc: user.salary.current_ctc,
+        currency_code: user.salary.currency_code,
+        effective_from: user.salary.effective_from
+      } : nil
     }
   end
 end

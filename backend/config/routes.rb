@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     post "login", to: "api/v1/sessions#create"
     delete "logout", to: "api/v1/sessions#destroy"
     get "current_user", to: "api/v1/current_user#show"
+    patch "current_user", to: "api/v1/current_user#update"
   end
 
   namespace :api do
@@ -18,9 +19,11 @@ Rails.application.routes.draw do
         delete "logout", to: "sessions#destroy", as: nil
       end
       get "current_user", to: "current_user#show"
+      patch "current_user", to: "current_user#update"
       get "me", to: "current_user#show"
       resources :users, only: %i[index show create update destroy]
       resources :departments, only: %i[index show]
+      resources :roles, only: :index
       resources :salaries, only: %i[index show create update]
       resources :payslips, only: %i[index show]
       resources :users, only: [] do
