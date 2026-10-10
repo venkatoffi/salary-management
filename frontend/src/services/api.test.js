@@ -43,4 +43,21 @@ describe('API authentication', () => {
     }))
     expect(tokenStorage.get()).toBe('new.jwt')
   })
+
+  it('updates the current profile with the raw-token header', async () => {
+    tokenStorage.set('profile.jwt')
+    fetch.mockResolvedValueOnce(new Response(JSON.stringify({ user: { id: 8, first_name: 'Alexandra' } }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    await api.updateCurrentUser({ first_name: 'Alexandra', city: 'Bengaluru' })
+
+    const [url, options] = fetch.mock.calls[0]
+    expect(url.toString()).toBe('http://localhost:3000/current_user')
+    expect(options.method).toBe('PATCH')
+    expect(options.headers.Authorization).toBe('profile.jwt')
+    expect(options.headers['Content-Type']).toBe('application/json')
+    expect(options.body).toBe(JSON.stringify({ user: { first_name: 'Alexandra', city: 'Bengaluru' } }))
+  })
 })
