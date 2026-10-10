@@ -17,7 +17,9 @@ npm run dev
 The API base URL can include `/api/v1` (for example
 `http://localhost:3000/api/v1`). Login, logout, and current-user requests use
 the direct Rails routes `/login`, `/logout`, and `/current_user`; resources use
-the versioned API paths.
+the versioned API paths. Rails allows `http://localhost:5173` as the local
+frontend origin by default. Set the backend's `FRONTEND_ORIGIN` to the exact
+origin where the frontend is hosted in other environments, then restart Rails.
 
 ## Authentication
 
