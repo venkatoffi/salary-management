@@ -3,3 +3,4 @@
 .DS_Store
 backend/.DS_Store
 backend/Gemfile.lock
+backend/log/development.log
