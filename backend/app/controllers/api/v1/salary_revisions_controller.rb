@@ -6,7 +6,7 @@ class Api::V1::SalaryRevisionsController < Api::V1::BaseController
     authorize_record!(@user)
     revisions = scoped(SalaryRevision.includes(:user, :approved_by), :salary_revisions)
       .where(user_id: @user.id)
-    revisions, meta = paginate(revisions.order(:revision_date, :id))
+    revisions, meta = paginate(revisions.order(revision_date: :desc, id: :desc))
 
     render json: {
       salary_revisions: revisions.map { |revision| revision_json(revision) },
@@ -42,6 +42,7 @@ class Api::V1::SalaryRevisionsController < Api::V1::BaseController
       new_ctc: revision.new_ctc,
       revision_date: revision.revision_date,
       approved_by_id: revision.approved_by_id,
+      approved_by_name: revision.approved_by.name,
       reason: revision.reason,
       increment_percentage: revision.increment_percentage
     }

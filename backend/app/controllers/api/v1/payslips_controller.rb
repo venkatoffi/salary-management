@@ -1,6 +1,6 @@
 class Api::V1::PayslipsController < Api::V1::BaseController
   def index
-    payslips = scoped(Payslip.includes(:user), :payslips)
+    payslips = scoped(Payslip.includes(user: :department), :payslips)
     payslips = payslips.where(user_id: params[:user_id]) if params[:user_id].present?
     payslips = payslips.where(month: params[:month]) if params[:month].present?
     payslips = payslips.where(year: params[:year]) if params[:year].present?
@@ -10,7 +10,7 @@ class Api::V1::PayslipsController < Api::V1::BaseController
   end
 
   def show
-    payslip = Payslip.find(params[:id])
+    payslip = Payslip.includes(user: :department).find(params[:id])
     authorize_record!(payslip)
 
     render json: { payslip: payslip_json(payslip) }
@@ -22,6 +22,12 @@ class Api::V1::PayslipsController < Api::V1::BaseController
     {
       id: payslip.id,
       user_id: payslip.user_id,
+      user: {
+        id: payslip.user.id,
+        name: payslip.user.name,
+        employee_code: payslip.user.employee_code,
+        department: { id: payslip.user.department.id, name: payslip.user.department.name }
+      },
       month: payslip.month,
       year: payslip.year,
       total_earnings: payslip.total_earnings,
